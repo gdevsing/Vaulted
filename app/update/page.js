@@ -1,4 +1,5 @@
 "use client";
+import { saveSnapshot, fetchAccounts, fetchFxRate } from "@/lib/api";
 
 import { useState, useRef, useCallback } from "react";
 import TopBar from "@/components/top-bar";
@@ -225,8 +226,19 @@ function AccountUpdateCard({ account, onSave, onSkip }) {
     setLoading(false);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setSaved(true);
+    try {
+      const balance = parseFloat(manual) || account.balance;
+      await saveSnapshot({
+        account_id: account.id,
+        balance,
+        note: null,
+        method: mode === "screenshot" ? "ai" : "manual",
+      });
+    } catch (e) {
+      console.error("saveSnapshot failed:", e);
+    }
     setTimeout(() => onSave(parseFloat(manual) || account.balance), 400);
   };
 
