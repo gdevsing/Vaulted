@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import TopBar from "@/components/top-bar";
 import BottomNav from "@/components/nav";
 import { useTheme } from "@/app/layout";
-import { fetchAccounts, createAccount, updateAccount, deleteAccount, fetchSettings, updateSettings } from "@/lib/api";
+import { fetchAccounts, createAccount, updateAccount, deleteAccount, fetchSettings, updateSettings, sendTestNotification, getNotifyStatus } from "@/lib/api";
 import { fmt, assetLabel, ownerLabel } from "@/lib/utils";
 import { ASSETS } from "@/lib/tokens";
 
@@ -363,6 +363,79 @@ function AccountRow({ account, onEdit, onDelete }) {
   );
 }
 
+
+// ─── Notification status card ─────────────────────────────────────────────────
+function NotifyStatusCard() {
+  const [status, setStatus]   = useState(null);
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState(null);
+
+  useEffect(() => {
+    getNotifyStatus().then(setStatus).catch(() => {});
+  }, []);
+
+  const handleTest = async () => {
+    setTesting(true);
+    setTestResult(null);
+    try {
+      const r = await sendTestNotification();
+      setTestResult({ ok: true, message: "Notification sent! Check your phone." });
+    } catch (err) {
+      setTestResult({ ok: false, message: err.message });
+    }
+    setTesting(false);
+  };
+
+  if (!status) return null;
+
+  return (
+    <div style={{
+      padding:"12px 16px",
+      background: status.configured ? "rgba(125,214,138,0.06)" : "rgba(232,112,112,0.06)",
+      border:`1px solid ${status.configured ? "rgba(125,214,138,0.25)" : "rgba(232,112,112,0.25)"}`,
+      borderRadius:"2px 10px 10px 2px",
+      display:"flex", flexDirection:"column", gap:8,
+    }}>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+        <div>
+          <div style={{ fontFamily:"var(--font-mono)", fontSize:10, color:"var(--ink)", letterSpacing:"0.06em" }}>
+            {status.configured ? "◎ ntfy.sh connected" : "◎ ntfy.sh not configured"}
+          </div>
+          {status.configured && (
+            <div style={{ fontFamily:"var(--font-mono)", fontSize:8, color:"var(--ink2)", marginTop:3 }}>
+              Topic: {status.topic} · {status.lastNotified ? `Last sent ${new Date(status.lastNotified).toLocaleDateString()}` : "Never sent"}
+            </div>
+          )}
+        </div>
+        {status.configured && (
+          <button onClick={handleTest} disabled={testing} className="btn-press" style={{
+            padding:"6px 12px", background:"transparent",
+            border:"1px solid var(--positive)", borderRadius:"2px 7px 7px 2px",
+            fontFamily:"var(--font-mono)", fontSize:9, letterSpacing:"0.1em",
+            color:"var(--positive)", cursor: testing ? "wait" : "pointer",
+          }}>
+            {testing ? "SENDING..." : "TEST"}
+          </button>
+        )}
+      </div>
+      {testResult && (
+        <div style={{
+          fontFamily:"var(--font-mono)", fontSize:9,
+          color: testResult.ok ? "var(--positive)" : "var(--negative)",
+          letterSpacing:"0.06em",
+        }}>
+          {testResult.ok ? "✓" : "⚠"} {testResult.message}
+        </div>
+      )}
+      {status.configured && (
+        <div style={{ fontFamily:"var(--font-mono)", fontSize:8, color:"var(--ink2)", letterSpacing:"0.06em" }}>
+          Subscribe on your phone: <span style={{ color:"var(--gold)" }}>{status.subscribeUrl}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Tab bar ──────────────────────────────────────────────────────────────────
 function TabBar({ active, onChange }) {
   const tabs = [
@@ -526,6 +599,7 @@ export default function AdminPage() {
                 <div style={{ fontFamily:"var(--font-mono)", fontSize:9, color:"var(--ink2)", letterSpacing:"0.08em", padding:"10px 14px", background:"rgba(255,210,74,0.06)", border:"1px solid rgba(255,210,74,0.2)", borderRadius:"2px 8px 8px 2px" }}>
                   ◈ Credentials are stored in the local SQLite database on your VPS. Never committed to git.
                 </div>
+                <NotifyStatusCard />
                 {CREDENTIAL_GROUPS.map(group => (
                   <CredentialGroup
                     key={group.id}
