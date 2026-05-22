@@ -364,6 +364,67 @@ function AccountRow({ account, onEdit, onDelete }) {
 }
 
 
+// ─── Cron status card ─────────────────────────────────────────────────────────
+function CronStatusCard() {
+  const [status, setStatus] = useState(null);
+
+  useEffect(() => {
+    fetch("/api/cron-status").then(r => r.json()).then(setStatus).catch(() => {});
+  }, []);
+
+  if (!status) return null;
+
+  const jobs = [
+    { key: "notify", label: "Weekly Notification", schedule: "Sundays 9 AM" },
+    { key: "fx",     label: "FX Rate Refresh",      schedule: "Daily 6 AM"   },
+    { key: "backup", label: "DB Backup",             schedule: "Mondays 2 AM" },
+  ];
+
+  return (
+    <div className="card fade-up" style={{ padding: "18px 20px" }}>
+      <div style={{ fontFamily: "var(--font-display)", fontSize: 14, color: "var(--ink)", marginBottom: 14 }}>
+        Cron Jobs
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        {jobs.map(({ key, label, schedule }) => {
+          const runs = status[key] || [];
+          const anyFail = runs.some(r => !r.ok);
+          const dotColor = runs.length === 0 ? "var(--ink3)" : anyFail ? "var(--negative)" : "var(--positive)";
+
+          return (
+            <div key={key} style={{ borderTop: "1px solid var(--border)", paddingTop: 10 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                <div style={{ width: 6, height: 6, borderRadius: "50%", background: dotColor, boxShadow: `0 0 6px ${dotColor}` }} />
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--ink)" }}>{label}</span>
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--ink2)", marginLeft: "auto" }}>{schedule}</span>
+              </div>
+              {runs.length === 0 ? (
+                <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--ink2)", letterSpacing: "0.06em" }}>No runs recorded yet</div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                  {runs.map((r, i) => (
+                    <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                      <span style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: r.ok ? "var(--positive)" : "var(--negative)", flexShrink: 0 }}>
+                        {r.ok ? "✓" : "✕"}
+                      </span>
+                      <span style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--ink2)" }}>
+                        {new Date(r.time).toLocaleString("en-AU", { dateStyle: "short", timeStyle: "short" })}
+                      </span>
+                      <span style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: r.ok ? "var(--ink2)" : "var(--negative)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {r.message}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ─── Notification status card ─────────────────────────────────────────────────
 function NotifyStatusCard() {
   const [status, setStatus]   = useState(null);
@@ -378,7 +439,7 @@ function NotifyStatusCard() {
     setTesting(true);
     setTestResult(null);
     try {
-      const r = await sendTestNotification();
+      await sendTestNotification();
       setTestResult({ ok: true, message: "Notification sent! Check your phone." });
     } catch (err) {
       setTestResult({ ok: false, message: err.message });
@@ -599,6 +660,7 @@ export default function AdminPage() {
                 <div style={{ fontFamily:"var(--font-mono)", fontSize:9, color:"var(--ink2)", letterSpacing:"0.08em", padding:"10px 14px", background:"rgba(255,210,74,0.06)", border:"1px solid rgba(255,210,74,0.2)", borderRadius:"2px 8px 8px 2px" }}>
                   ◈ Credentials are stored in the local SQLite database on your VPS. Never committed to git.
                 </div>
+                <CronStatusCard />
                 <NotifyStatusCard />
                 {CREDENTIAL_GROUPS.map(group => (
                   <CredentialGroup
