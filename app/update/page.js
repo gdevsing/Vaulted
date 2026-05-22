@@ -214,9 +214,11 @@ function AccountUpdateCard({ account, onSave, onSkip }) {
   const [note, setNote]         = useState("");
   const [saved, setSaved]       = useState(false);
 
-  const activeBalance = mode === "screenshot" && result?.balance != null
-    ? result.balance
-    : parseFloat(manual) || 0;
+  const activeBalance = mode === "no-change"
+    ? (account.balance || 0)
+    : mode === "screenshot" && result?.balance != null
+      ? result.balance
+      : parseFloat(manual) || 0;
 
   const diff = activeBalance - (account.balance || 0);
 
@@ -262,7 +264,7 @@ function AccountUpdateCard({ account, onSave, onSkip }) {
         account_id: account.id,
         balance:    activeBalance,
         note:       note || null,
-        method:     mode === "screenshot" && result ? "ai" : "manual",
+        method:     mode === "no-change" ? "no_change" : mode === "screenshot" && result ? "ai" : "manual",
       });
     } catch (e) {
       console.error("saveSnapshot failed:", e);
@@ -298,16 +300,20 @@ function AccountUpdateCard({ account, onSave, onSkip }) {
 
       {/* Mode tabs */}
       <div style={{ display:"flex", borderBottom:"1px solid var(--border)", background:"rgba(0,0,0,0.1)" }}>
-        {["screenshot","manual"].map(m => (
-          <button key={m} onClick={() => setMode(m)} className="btn-press" style={{
+        {[
+          { key:"screenshot",  label:"📸 Screenshot" },
+          { key:"manual",      label:"✎ Manual" },
+          { key:"no-change",   label:"✓ No Change" },
+        ].map(({ key, label }) => (
+          <button key={key} onClick={() => setMode(key)} className="btn-press" style={{
             flex:1, padding:"9px 0", fontFamily:"var(--font-mono)", fontSize:9,
             letterSpacing:"0.12em", textTransform:"uppercase", border:"none",
-            cursor:"pointer", background: mode === m ? "var(--surface-solid)" : "transparent",
-            color: mode === m ? "var(--gold)" : "var(--ink2)",
-            borderBottom: mode === m ? `2px solid ${color}` : "2px solid transparent",
+            cursor:"pointer", background: mode === key ? "var(--surface-solid)" : "transparent",
+            color: mode === key ? (key === "no-change" ? "var(--positive)" : "var(--gold)") : "var(--ink2)",
+            borderBottom: mode === key ? `2px solid ${key === "no-change" ? "var(--positive)" : color}` : "2px solid transparent",
             transition:"all 0.2s",
           }}>
-            {m === "screenshot" ? "📸 Screenshot" : "✎ Manual"}
+            {label}
           </button>
         ))}
       </div>
@@ -332,6 +338,19 @@ function AccountUpdateCard({ account, onSave, onSkip }) {
             onFileSelect={handleFileSelect}
             file={file} loading={loading} result={result}
           />
+        ) : mode === "no-change" ? (
+          <div style={{
+            display:"flex", flexDirection:"column", alignItems:"center", gap:8,
+            padding:"18px 12px", border:"1.5px solid rgba(125,214,138,0.25)",
+            borderRadius:"3px 14px 14px 3px", background:"rgba(125,214,138,0.04)",
+          }}>
+            <div style={{ fontFamily:"var(--font-display)", fontSize:26, color:"var(--positive)" }}>
+              {fmt(account.balance || 0)}
+            </div>
+            <div style={{ fontFamily:"var(--font-mono)", fontSize:9, color:"var(--positive)", letterSpacing:"0.12em" }}>
+              BALANCE UNCHANGED — CONFIRMING AS IS
+            </div>
+          </div>
         ) : (
           <div>
             <div className="label" style={{ marginBottom:7 }}>New Balance ({account.currency || "AUD"})</div>
@@ -368,29 +387,35 @@ function AccountUpdateCard({ account, onSave, onSkip }) {
         )}
 
         {/* Note */}
-        <div style={{ marginTop:12 }}>
-          <textarea
-            value={note} onChange={e => setNote(e.target.value)}
-            placeholder="Note (optional)..." rows={2}
-            style={{
-              width:"100%", background:"rgba(255,255,255,0.02)",
-              border:"1px solid var(--border)", borderRadius:"2px 8px 8px 2px",
-              padding:"8px 12px", fontFamily:"var(--font-mono)", fontSize:10,
-              color:"var(--ink2)", outline:"none", resize:"none", boxSizing:"border-box",
-            }}
-          />
-        </div>
+        {mode !== "no-change" && (
+          <div style={{ marginTop:12 }}>
+            <textarea
+              value={note} onChange={e => setNote(e.target.value)}
+              placeholder="Note (optional)..." rows={2}
+              style={{
+                width:"100%", background:"rgba(255,255,255,0.02)",
+                border:"1px solid var(--border)", borderRadius:"2px 8px 8px 2px",
+                padding:"8px 12px", fontFamily:"var(--font-mono)", fontSize:10,
+                color:"var(--ink2)", outline:"none", resize:"none", boxSizing:"border-box",
+              }}
+            />
+          </div>
+        )}
       </div>
 
       {/* Actions */}
       <div style={{ padding:"12px 18px", borderTop:"1px solid var(--border)", display:"flex", gap:8 }}>
         <button onClick={handleSave} disabled={saved} className="btn-press" style={{
-          flex:1, padding:"12px", background:"var(--gold)", border:"none",
+          flex:1, padding:"12px",
+          background: mode === "no-change" ? "rgba(125,214,138,0.15)" : "var(--gold)",
+          border: mode === "no-change" ? "1px solid var(--positive)" : "none",
           borderRadius:"2px 9px 9px 2px", fontFamily:"var(--font-mono)", fontSize:11,
-          letterSpacing:"0.1em", color:"#0C0A08", cursor: saved ? "not-allowed" : "pointer",
+          letterSpacing:"0.1em",
+          color: mode === "no-change" ? "var(--positive)" : "#0C0A08",
+          cursor: saved ? "not-allowed" : "pointer",
           opacity: saved ? 0.6 : 1,
         }}>
-          {saved ? "SAVED ✓" : "SAVE BALANCE"}
+          {saved ? "SAVED ✓" : mode === "no-change" ? "CONFIRM NO CHANGE" : "SAVE BALANCE"}
         </button>
         <button onClick={onSkip} className="btn-press" style={{
           padding:"12px 16px", background:"transparent", border:"1px solid var(--border)",
