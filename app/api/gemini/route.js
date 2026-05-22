@@ -19,7 +19,7 @@ export async function POST(request) {
       );
     }
 
-    const model = (await getSetting("gemini_model")) || "gemini-2.5-flash-preview-04-17";
+    const model = (await getSetting("gemini_model")) || "gemini-2.5-flash";
     const body  = await request.json();
     const { image, mimeType = "image/jpeg" } = body;
 
@@ -68,9 +68,11 @@ Respond with exactly this JSON shape:
     );
 
     if (!geminiRes.ok) {
-      const err = await geminiRes.text();
-      console.error("Gemini API error:", err);
-      return NextResponse.json({ error: "Gemini API error", detail: err }, { status: 502 });
+      const errText = await geminiRes.text();
+      console.error("Gemini API error:", errText);
+      let errMsg = "Gemini API error";
+      try { errMsg = JSON.parse(errText)?.error?.message || errMsg; } catch {}
+      return NextResponse.json({ error: errMsg }, { status: 502 });
     }
 
     const geminiData = await geminiRes.json();
