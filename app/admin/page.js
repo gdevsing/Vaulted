@@ -366,11 +366,12 @@ function AccountRow({ account, onEdit, onDelete }) {
 
 // ─── Cron status card ─────────────────────────────────────────────────────────
 function CronStatusCard() {
-  const [status, setStatus] = useState(null);
+  const [status,  setStatus]  = useState(null);
+  const [running, setRunning] = useState({});
 
-  useEffect(() => {
-    fetch("/api/cron-status").then(r => r.json()).then(setStatus).catch(() => {});
-  }, []);
+  const refresh = () => fetch("/api/cron-status").then(r => r.json()).then(setStatus).catch(() => {});
+
+  useEffect(() => { refresh(); }, []);
 
   if (!status) return null;
 
@@ -379,6 +380,20 @@ function CronStatusCard() {
     { key: "fx",     label: "FX Rate Refresh",      schedule: "Daily 6 AM"   },
     { key: "backup", label: "DB Backup",             schedule: "Mondays 2 AM" },
   ];
+
+  const runJob = async (key) => {
+    setRunning(r => ({ ...r, [key]: true }));
+    try {
+      await fetch("/api/run-job", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ job: key }),
+      });
+      await refresh();
+    } finally {
+      setRunning(r => ({ ...r, [key]: false }));
+    }
+  };
 
   return (
     <div className="card fade-up" style={{ padding: "18px 20px" }}>
@@ -390,13 +405,30 @@ function CronStatusCard() {
           const runs = status[key] || [];
           const anyFail = runs.some(r => !r.ok);
           const dotColor = runs.length === 0 ? "var(--ink3)" : anyFail ? "var(--negative)" : "var(--positive)";
+          const isRunning = running[key];
 
           return (
             <div key={key} style={{ borderTop: "1px solid var(--border)", paddingTop: 10 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
                 <div style={{ width: 6, height: 6, borderRadius: "50%", background: dotColor, boxShadow: `0 0 6px ${dotColor}` }} />
                 <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--ink)" }}>{label}</span>
-                <span style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--ink2)", marginLeft: "auto" }}>{schedule}</span>
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--ink2)" }}>{schedule}</span>
+                <button
+                  onClick={() => runJob(key)}
+                  disabled={isRunning}
+                  className="btn-press"
+                  style={{
+                    marginLeft: "auto",
+                    fontFamily: "var(--font-mono)", fontSize: 9,
+                    letterSpacing: "0.08em", textTransform: "uppercase",
+                    background: "var(--ink3)", color: "var(--ink2)",
+                    border: "1px solid var(--border)", borderRadius: "2px 6px 6px 2px",
+                    padding: "3px 8px", cursor: isRunning ? "default" : "pointer",
+                    opacity: isRunning ? 0.5 : 1,
+                  }}
+                >
+                  {isRunning ? "···" : "Run Now"}
+                </button>
               </div>
               {runs.length === 0 ? (
                 <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--ink2)", letterSpacing: "0.06em" }}>No runs recorded yet</div>
