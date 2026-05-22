@@ -14,6 +14,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" data-theme={theme}>
       <head>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <meta name="theme-color" content="#0C0A08" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
