@@ -128,31 +128,49 @@ async function backupDb() {
     const existingId = files?.[0]?.id;
 
     const boundary = "vaulted_backup";
-    const uploadBody = Buffer.concat([
+
+    // Build a fresh multipart body for POST (needs parents metadata)
+    const makeUploadBody = (includeParents) => Buffer.concat([
       Buffer.from(`--${boundary}\r\nContent-Type: application/json\r\n\r\n${
-        existingId ? "{}" : JSON.stringify({ name: filename, parents: [folderId] })
+        includeParents ? JSON.stringify({ name: filename, parents: [folderId] }) : "{}"
       }\r\n--${boundary}\r\nContent-Type: application/octet-stream\r\n\r\n`),
       dbBuffer,
       Buffer.from(`\r\n--${boundary}--`),
     ]);
 
-    // Update existing file or create new one
-    const url = existingId
-      ? `https://www.googleapis.com/upload/drive/v3/files/${existingId}?uploadType=multipart`
-      : "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart";
+    const driveHeaders = {
+      "Authorization": `Bearer ${access_token}`,
+      "Content-Type": `multipart/related; boundary=${boundary}`,
+    };
 
-    const uploadRes = await fetch(url, {
-      method: existingId ? "PATCH" : "POST",
-      headers: {
-        "Authorization": `Bearer ${access_token}`,
-        "Content-Type": `multipart/related; boundary=${boundary}`,
-      },
-      body: uploadBody,
-    });
+    let action = "created";
+    let uploadRes;
+
+    if (existingId) {
+      uploadRes = await fetch(
+        `https://www.googleapis.com/upload/drive/v3/files/${existingId}?uploadType=multipart`,
+        { method: "PATCH", headers: driveHeaders, body: makeUploadBody(false) }
+      );
+      if (uploadRes.status === 404) {
+        // Stale ID — file was deleted; fall back to creating a new one
+        console.log("[cron] PATCH 404 — file gone, creating new file");
+        uploadRes = await fetch(
+          "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
+          { method: "POST", headers: driveHeaders, body: makeUploadBody(true) }
+        );
+      } else {
+        action = "updated";
+      }
+    } else {
+      uploadRes = await fetch(
+        "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
+        { method: "POST", headers: driveHeaders, body: makeUploadBody(true) }
+      );
+    }
 
     if (uploadRes.ok) {
-      console.log(`[cron] ✓ Backed up to Drive: ${filename} (${existingId ? "updated" : "created"})`);
-      await recordRun("backup", true, `${filename} ${existingId ? "updated" : "created"}`);
+      console.log(`[cron] ✓ Backed up to Drive: ${filename} (${action})`);
+      await recordRun("backup", true, `${filename} ${action}`);
     } else {
       const errText = await uploadRes.text();
       console.error("[cron] Drive upload failed:", errText);
