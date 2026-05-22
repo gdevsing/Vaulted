@@ -20,13 +20,98 @@ async function recordRun(type, ok, message) {
   });
 }
 
+// ─── FX — call frankfurter.app directly, cache in DB ─────────────────────────
+async function runFx() {
+  const db       = getDb();
+  const from     = "USD";
+  const to       = "AUD";
+  const cacheKey = `fx_${from}_${to}`;
+
+  const res = await fetch(`https://api.frankfurter.app/latest?from=${from}&to=${to}`);
+  if (!res.ok) throw new Error("frankfurter.app error");
+  const data = await res.json();
+  const rate = data.rates[to];
+
+  await db.execute({
+    sql: "INSERT OR REPLACE INTO settings (key, value) VALUES (?,?), (?,?)",
+    args: [cacheKey, String(rate), `${cacheKey}_ts`, new Date().toISOString()],
+  });
+
+  const msg = `1 USD = ${rate} AUD`;
+  await recordRun("fx", true, msg);
+  return { ok: true, message: msg };
+}
+
+// ─── Notify — send ntfy.sh notification directly ─────────────────────────────
+async function runNotify() {
+  const db       = getDb();
+  const topic    = await getSetting("ntfy_topic");
+  const server   = (await getSetting("ntfy_server")) || "https://ntfy.sh";
+  const password = await getSetting("ntfy_password");
+
+  if (!topic) {
+    const msg = "ntfy_topic not configured";
+    await recordRun("notify", false, msg);
+    return { ok: false, message: msg };
+  }
+
+  const { rows: nw } = await db.execute(
+    "SELECT SUM(balance) as total FROM accounts WHERE active = 1"
+  );
+  const total = nw[0]?.total || 0;
+
+  const { rows: accounts } = await db.execute(
+    "SELECT name, frequency, updated FROM accounts WHERE active = 1"
+  );
+  const due = accounts.filter(a => {
+    const days = Math.floor((Date.now() - new Date(a.updated)) / 86400000);
+    return days >= ({ weekly: 8, fortnightly: 16, monthly: 33 }[a.frequency] || 33);
+  });
+
+  const totalStr = "$" + Math.round(total).toLocaleString("en-AU");
+  const dueStr   = due.length > 0
+    ? `${due.length} account${due.length > 1 ? "s" : ""} to update`
+    : "All accounts up to date";
+  const message  = `Net worth: ${totalStr} · ${dueStr}`;
+  const title    = "Time to sync your vault";
+
+  const headers = {
+    "Content-Type": "text/plain",
+    "Title":    title,
+    "Priority": due.length > 0 ? "high" : "default",
+    "Tags":     "money_with_wings",
+  };
+  if (password) headers["Authorization"] = "Bearer " + password;
+
+  const ntfyRes = await fetch(`${server}/${topic}`, {
+    method: "POST", headers, body: message,
+  });
+
+  if (!ntfyRes.ok) {
+    const detail = await ntfyRes.text();
+    const msg = `ntfy error: ${detail}`;
+    await recordRun("notify", false, msg);
+    return { ok: false, message: msg };
+  }
+
+  await db.execute({
+    sql: "INSERT OR REPLACE INTO settings (key, value) VALUES (?,?)",
+    args: ["last_notified", new Date().toISOString()],
+  });
+
+  await recordRun("notify", true, message);
+  return { ok: true, message };
+}
+
+// ─── Backup — upload DB to Google Drive ──────────────────────────────────────
 async function runBackup() {
   const token    = await getSetting("gdrive_token");
   const folderId = await getSetting("gdrive_folder_id");
 
   if (!token || !folderId) {
-    await recordRun("backup", false, "Google Drive not configured");
-    return { ok: false, message: "Google Drive not configured" };
+    const msg = "Google Drive not configured";
+    await recordRun("backup", false, msg);
+    return { ok: false, message: msg };
   }
 
   const { readFile }   = await import("fs/promises");
@@ -72,7 +157,7 @@ async function runBackup() {
     Buffer.from(`\r\n--${boundary}--`),
   ]);
 
-  const headers = {
+  const driveHeaders = {
     Authorization: `Bearer ${access_token}`,
     "Content-Type": `multipart/related; boundary=${boundary}`,
   };
@@ -83,20 +168,22 @@ async function runBackup() {
   if (existingId) {
     uploadRes = await fetch(
       `https://www.googleapis.com/upload/drive/v3/files/${existingId}?uploadType=multipart`,
-      { method: "PATCH", headers, body: makeBody(false) }
+      { method: "PATCH", headers: driveHeaders, body: makeBody(false) }
     );
-    if (uploadRes.status === 404) {
+    if (uploadRes.ok) {
+      action = "updated";
+    } else {
+      const patchErr = await uploadRes.text();
+      console.log(`[run-job] PATCH ${uploadRes.status} — falling back to POST. ${patchErr}`);
       uploadRes = await fetch(
         "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
-        { method: "POST", headers, body: makeBody(true) }
+        { method: "POST", headers: driveHeaders, body: makeBody(true) }
       );
-    } else {
-      action = "updated";
     }
   } else {
     uploadRes = await fetch(
       "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
-      { method: "POST", headers, body: makeBody(true) }
+      { method: "POST", headers: driveHeaders, body: makeBody(true) }
     );
   }
 
@@ -106,6 +193,7 @@ async function runBackup() {
     return { ok: true, message: msg };
   } else {
     const errText = await uploadRes.text();
+    console.log(`[run-job] Drive upload failed ${uploadRes.status}: ${errText}`);
     let errMsg = errText;
     try { errMsg = JSON.parse(errText)?.error?.message || errText; } catch {}
     await recordRun("backup", false, errMsg);
@@ -113,6 +201,7 @@ async function runBackup() {
   }
 }
 
+// ─── Handler ──────────────────────────────────────────────────────────────────
 export async function POST(request) {
   try {
     await initDb();
@@ -122,32 +211,13 @@ export async function POST(request) {
       const result = await runBackup();
       return NextResponse.json(result, { status: result.ok ? 200 : 502 });
     }
-
     if (job === "fx") {
-      const appUrl = (await getSetting("app_url")) || "http://localhost:3000";
-      const res    = await fetch(`${appUrl}/api/fx?from=USD&to=AUD`);
-      const data   = await res.json();
-      if (data.rate) {
-        const msg = `1 USD = ${data.rate} AUD`;
-        await recordRun("fx", true, msg);
-        return NextResponse.json({ ok: true, message: msg });
-      }
-      const msg = data.error || "FX fetch failed";
-      await recordRun("fx", false, msg);
-      return NextResponse.json({ ok: false, message: msg }, { status: 502 });
+      const result = await runFx();
+      return NextResponse.json(result, { status: result.ok ? 200 : 502 });
     }
-
     if (job === "notify") {
-      const appUrl = (await getSetting("app_url")) || "http://localhost:3000";
-      const res    = await fetch(`${appUrl}/api/notify`, { method: "POST" });
-      const data   = await res.json();
-      if (data.sent) {
-        await recordRun("notify", true, data.message);
-        return NextResponse.json({ ok: true, message: data.message });
-      }
-      const msg = data.error || "Notification failed";
-      await recordRun("notify", false, msg);
-      return NextResponse.json({ ok: false, message: msg }, { status: 502 });
+      const result = await runNotify();
+      return NextResponse.json(result, { status: result.ok ? 200 : 502 });
     }
 
     return NextResponse.json({ error: "Unknown job" }, { status: 400 });

@@ -61,8 +61,9 @@ Respond with exactly this JSON shape:
           }],
           generationConfig: {
             temperature: 0.1,
-            maxOutputTokens: 256,
+            maxOutputTokens: 1024,
           },
+          thinkingConfig: { thinkingBudget: 0 },
         }),
       }
     );
