@@ -77,8 +77,7 @@ async function backupDb() {
 
     const dbPath   = path.join(__dirname, "..", "vaulted.db");
     const dbBuffer = await readFile(dbPath);
-    const days     = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"];
-    const filename = `vaulted-${days[new Date().getDay()]}.db`;
+    const filename = "vaulted-backup.db";
 
     // Build JWT for service account
     const sa  = JSON.parse(token);
@@ -157,11 +156,11 @@ async function start() {
   console.log(`[cron] Vaulted scheduler starting`);
   console.log(`[cron] Notification: ${notifyDay}s at 9:00 AM AEST`);
   console.log(`[cron] FX refresh:   daily at 6:00 AM AEST`);
-  console.log(`[cron] DB backup:    daily at 2:00 AM AEST`);
+  console.log(`[cron] DB backup:    Mondays at 2:00 AM AEST`);
 
   cron.schedule(`0 9 * * ${dayNum}`,  sendWeeklyNotification, { timezone: "Australia/Sydney" });
   cron.schedule("0 6 * * *",          refreshFxRate,           { timezone: "Australia/Sydney" });
-  cron.schedule("0 2 * * *",          backupDb,                { timezone: "Australia/Sydney" });
+  cron.schedule("0 2 * * 1",          backupDb,                { timezone: "Australia/Sydney" });
 
   console.log("[cron] ✓ Running. Jobs scheduled.");
 }
