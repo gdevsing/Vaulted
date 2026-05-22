@@ -79,6 +79,11 @@ body {
   100% { transform: rotate(-95deg); }
 }
 
+@keyframes revealFromLeft {
+  from { clip-path: inset(0 100% 0 0); opacity: 0; }
+  to   { clip-path: inset(0 0% 0 0);   opacity: 1; }
+}
+
 @keyframes xpFill {
   from { width: 0%; }
   to   { width: var(--xp-width, 78%); }

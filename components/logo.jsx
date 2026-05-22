@@ -39,7 +39,7 @@ export default function Logo({ size = "default", showWordmark = true, className 
           stroke={accent} strokeWidth={s.mark * 0.034} strokeLinecap="round"
           style={animate ? {
             transformOrigin: `${c}px ${c}px`,
-            animation: "dialTurn 1.2s cubic-bezier(0.16,1,0.3,1) both",
+            animation: "dialTurn 2s cubic-bezier(0.16,1,0.3,1) both",
           } : undefined}
         />
         {/* Centre dot */}
@@ -55,6 +55,7 @@ export default function Logo({ size = "default", showWordmark = true, className 
           color: fg,
           lineHeight: 1,
           userSelect: "none",
+          ...(animate ? { animation: "revealFromLeft 0.9s cubic-bezier(0.16,1,0.3,1) 0.4s both" } : {}),
         }}>
           VAULTED
         </span>
