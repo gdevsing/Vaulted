@@ -5,6 +5,16 @@ Read this at the start of every session.
 
 ---
 
+## ⚠️ Working Rules
+
+1. **Never push code without approval.** Always explain what you plan to change and why, then wait for the go-ahead before implementing or pushing anything.
+2. **Never implement without discussing first.** Diagnose and propose — then wait.
+
+---
+
+
+---
+
 ## What is Vaulted?
 
 A personal net worth tracker for two people (husband + wife, single shared login).
