@@ -10,7 +10,7 @@ import { ASSETS } from "@/lib/tokens";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const ASSET_OPTIONS     = ["cash","shares","crypto","super"];
-const OWNER_OPTIONS     = [{ value:"H", label:"Husband" }, { value:"W", label:"Wife" }];
+const OWNER_OPTIONS     = [{ value:"H", label:"Husband" }, { value:"W", label:"Wife" }, { value:"J", label:"Joint" }];
 const CURRENCY_OPTIONS  = ["AUD","USD"];
 const FREQUENCY_OPTIONS = ["weekly","fortnightly","monthly"];
 const EMPTY_ACCOUNT     = { name:"", institution:"", owner:"H", asset:"cash", currency:"AUD", frequency:"weekly", group:"" };
