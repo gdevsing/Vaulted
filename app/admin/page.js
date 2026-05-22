@@ -44,14 +44,14 @@ const CREDENTIAL_GROUPS = [
   },
   {
     id: "gdrive",
-    label: "Google Drive Backup",
+    label: "Cloud Storage Backup",
     icon: "↓",
-    description: "Automatic daily DB backup to Google Drive",
-    link: "https://console.cloud.google.com",
+    description: "Automatic daily DB backup to Google Cloud Storage",
+    link: "https://console.cloud.google.com/storage",
     linkLabel: "GCP Console →",
     fields: [
       { key: "gdrive_token",     label: "Service Account Token", secret: true,  placeholder: "Paste JSON token..." },
-      { key: "gdrive_folder_id", label: "Folder ID",             secret: false, placeholder: "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2..." },
+      { key: "gdrive_folder_id", label: "Bucket Name",           secret: false, placeholder: "vaulted-backup" },
     ],
   },
   {

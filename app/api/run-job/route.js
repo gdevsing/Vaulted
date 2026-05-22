@@ -103,13 +103,13 @@ async function runNotify() {
   return { ok: true, message };
 }
 
-// ─── Backup — upload DB to Google Drive ──────────────────────────────────────
+// ─── Backup — upload DB to Google Cloud Storage ──────────────────────────────
 async function runBackup() {
-  const token    = await getSetting("gdrive_token");
-  const folderId = await getSetting("gdrive_folder_id");
+  const token      = await getSetting("gdrive_token");
+  const bucketName = await getSetting("gdrive_folder_id");
 
-  if (!token || !folderId) {
-    const msg = "Google Drive not configured";
+  if (!token || !bucketName) {
+    const msg = "Cloud Storage not configured";
     await recordRun("backup", false, msg);
     return { ok: false, message: msg };
   }
@@ -126,7 +126,7 @@ async function runBackup() {
   const hdr = Buffer.from(JSON.stringify({ alg: "RS256", typ: "JWT" })).toString("base64url");
   const pld = Buffer.from(JSON.stringify({
     iss: sa.client_email,
-    scope: "https://www.googleapis.com/auth/drive.file",
+    scope: "https://www.googleapis.com/auth/devstorage.read_write",
     aud: "https://oauth2.googleapis.com/token",
     iat: now, exp: now + 3600,
   })).toString("base64url");
@@ -141,59 +141,26 @@ async function runBackup() {
   });
   const { access_token } = await tokenRes.json();
 
-  const searchRes = await fetch(
-    `https://www.googleapis.com/drive/v3/files?q=name='${filename}'+and+'${folderId}'+in+parents+and+trashed=false&fields=files(id)`,
-    { headers: { Authorization: `Bearer ${access_token}` } }
-  );
-  const { files } = await searchRes.json();
-  const existingId = files?.[0]?.id;
-
-  const boundary = "vaulted_backup";
-  const makeBody = (includeParents) => Buffer.concat([
-    Buffer.from(`--${boundary}\r\nContent-Type: application/json\r\n\r\n${
-      includeParents ? JSON.stringify({ name: filename, parents: [folderId] }) : "{}"
-    }\r\n--${boundary}\r\nContent-Type: application/octet-stream\r\n\r\n`),
-    dbBuffer,
-    Buffer.from(`\r\n--${boundary}--`),
-  ]);
-
-  const driveHeaders = {
-    Authorization: `Bearer ${access_token}`,
-    "Content-Type": `multipart/related; boundary=${boundary}`,
-  };
-
-  let action = "created";
-  let uploadRes;
-
-  if (existingId) {
-    uploadRes = await fetch(
-      `https://www.googleapis.com/upload/drive/v3/files/${existingId}?uploadType=multipart`,
-      { method: "PATCH", headers: driveHeaders, body: makeBody(false) }
-    );
-    if (uploadRes.ok) {
-      action = "updated";
-    } else {
-      const patchErr = await uploadRes.text();
-      console.log(`[run-job] PATCH ${uploadRes.status} — falling back to POST. ${patchErr}`);
-      uploadRes = await fetch(
-        "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
-        { method: "POST", headers: driveHeaders, body: makeBody(true) }
-      );
+  // GCS overwrites the object automatically — no search or PATCH needed
+  const uploadRes = await fetch(
+    `https://storage.googleapis.com/upload/storage/v1/b/${encodeURIComponent(bucketName)}/o?uploadType=media&name=${encodeURIComponent(filename)}`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${access_token}`,
+        "Content-Type": "application/octet-stream",
+      },
+      body: dbBuffer,
     }
-  } else {
-    uploadRes = await fetch(
-      "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
-      { method: "POST", headers: driveHeaders, body: makeBody(true) }
-    );
-  }
+  );
 
   if (uploadRes.ok) {
-    const msg = `${filename} ${action}`;
+    const msg = `${filename} → gs://${bucketName}`;
     await recordRun("backup", true, msg);
     return { ok: true, message: msg };
   } else {
     const errText = await uploadRes.text();
-    console.log(`[run-job] Drive upload failed ${uploadRes.status}: ${errText}`);
+    console.log(`[run-job] GCS upload failed ${uploadRes.status}: ${errText}`);
     let errMsg = errText;
     try { errMsg = JSON.parse(errText)?.error?.message || errText; } catch {}
     await recordRun("backup", false, errMsg);
