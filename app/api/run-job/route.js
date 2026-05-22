@@ -103,99 +103,49 @@ async function runNotify() {
   return { ok: true, message };
 }
 
-// ─── Backup — upload DB to Google Drive ──────────────────────────────────────
+// ─── Backup — push DB to GitHub private repo ─────────────────────────────────
 async function runBackup() {
-  const token    = await getSetting("gdrive_token");
-  const folderId = await getSetting("gdrive_folder_id");
+  const ghToken = await getSetting("github_token");
+  const ghRepo  = await getSetting("github_repo");
 
-  if (!token || !folderId) {
-    const msg = "Google Drive not configured";
+  if (!ghToken || !ghRepo) {
+    const msg = "GitHub backup not configured";
     await recordRun("backup", false, msg);
     return { ok: false, message: msg };
   }
 
-  const { readFile }   = await import("fs/promises");
-  const { createSign } = await import("crypto");
-
-  const dbPath   = path.join(process.cwd(), "vaulted.db");
-  const dbBuffer = await readFile(dbPath);
-  const filename = "vaulted-backup.db";
-
-  const sa  = JSON.parse(token);
-  const now = Math.floor(Date.now() / 1000);
-  const hdr = Buffer.from(JSON.stringify({ alg: "RS256", typ: "JWT" })).toString("base64url");
-  const pld = Buffer.from(JSON.stringify({
-    iss: sa.client_email,
-    scope: "https://www.googleapis.com/auth/drive.file",
-    aud: "https://oauth2.googleapis.com/token",
-    iat: now, exp: now + 3600,
-  })).toString("base64url");
-  const sign = createSign("RSA-SHA256");
-  sign.update(`${hdr}.${pld}`);
-  const jwt = `${hdr}.${pld}.${sign.sign(sa.private_key, "base64url")}`;
-
-  const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer", assertion: jwt }),
-  });
-  const { access_token } = await tokenRes.json();
-
-  const searchRes = await fetch(
-    `https://www.googleapis.com/drive/v3/files?q=name='${filename}'+and+'${folderId}'+in+parents+and+trashed=false&fields=files(id)`,
-    { headers: { Authorization: `Bearer ${access_token}` } }
-  );
-  const { files } = await searchRes.json();
-  const existingId = files?.[0]?.id;
-
-  const boundary = "vaulted_backup";
-  const makeBody = (includeParents) => Buffer.concat([
-    Buffer.from(`--${boundary}\r\nContent-Type: application/json\r\n\r\n${
-      includeParents ? JSON.stringify({ name: filename, parents: [folderId] }) : "{}"
-    }\r\n--${boundary}\r\nContent-Type: application/octet-stream\r\n\r\n`),
-    dbBuffer,
-    Buffer.from(`\r\n--${boundary}--`),
-  ]);
-
-  const driveHeaders = {
-    Authorization: `Bearer ${access_token}`,
-    "Content-Type": `multipart/related; boundary=${boundary}`,
+  const { readFile } = await import("fs/promises");
+  const dbBuffer = await readFile(path.join(process.cwd(), "vaulted.db"));
+  const content  = dbBuffer.toString("base64");
+  const filepath = "vaulted-backup.db";
+  const ghHeaders = {
+    Authorization: `token ${ghToken}`,
+    "Content-Type": "application/json",
+    "User-Agent":   "Vaulted",
   };
 
-  let action = "created";
-  let uploadRes;
+  // Get existing file SHA (required by GitHub API to update an existing file)
+  const shaRes  = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${filepath}`, { headers: ghHeaders });
+  const shaData = shaRes.ok ? await shaRes.json() : null;
 
-  if (existingId) {
-    uploadRes = await fetch(
-      `https://www.googleapis.com/upload/drive/v3/files/${existingId}?uploadType=multipart`,
-      { method: "PATCH", headers: driveHeaders, body: makeBody(false) }
-    );
-    if (uploadRes.ok) {
-      action = "updated";
-    } else {
-      const patchErr = await uploadRes.text();
-      console.log(`[run-job] PATCH ${uploadRes.status} — falling back to POST. ${patchErr}`);
-      uploadRes = await fetch(
-        "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
-        { method: "POST", headers: driveHeaders, body: makeBody(true) }
-      );
-    }
-  } else {
-    uploadRes = await fetch(
-      "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
-      { method: "POST", headers: driveHeaders, body: makeBody(true) }
-    );
-  }
+  const body = {
+    message: `backup: ${new Date().toISOString().split("T")[0]}`,
+    content,
+    ...(shaData?.sha ? { sha: shaData.sha } : {}),
+  };
+
+  const uploadRes = await fetch(
+    `https://api.github.com/repos/${ghRepo}/contents/${filepath}`,
+    { method: "PUT", headers: ghHeaders, body: JSON.stringify(body) }
+  );
 
   if (uploadRes.ok) {
-    const msg = `${filename} ${action}`;
+    const msg = `vaulted-backup.db → ${ghRepo}`;
     await recordRun("backup", true, msg);
     return { ok: true, message: msg };
   } else {
-    const errText = await uploadRes.text();
-    console.log(`[run-job] Drive upload failed ${uploadRes.status}: ${errText}`);
-    let errMsg = errText;
-    try { errMsg = JSON.parse(errText)?.error?.message || errText; } catch {}
+    const errData = await uploadRes.json().catch(() => ({}));
+    const errMsg  = errData.message || "GitHub upload failed";
     await recordRun("backup", false, errMsg);
     return { ok: false, message: errMsg };
   }
