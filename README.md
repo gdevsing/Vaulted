@@ -15,6 +15,18 @@ Personal net worth tracker for two — built with Next.js, SQLite, and Gemini AI
 | Hosting | Oracle Cloud Always Free |
 | SSL | Let's Encrypt |
 
+## Architecture
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) for the full system diagram, request flow, auth flow, and infrastructure details.
+
+```
+User → Nginx (SSL) → Next.js (:3000) → SQLite
+                          ├── Google Gemini (AI vision)
+                          ├── frankfurter.app (FX rates)
+                          ├── ntfy.sh (notifications)
+                          └── Google Drive (backups)
+```
+
 ## Getting started
 
 ```bash

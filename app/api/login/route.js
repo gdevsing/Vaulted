@@ -15,14 +15,18 @@ export async function POST(request) {
     const stored = await getSetting("app_password");
 
     if (!stored) {
-      return NextResponse.json({ ok: true });
+      const res = NextResponse.json({ ok: true });
+      res.cookies.set("vaulted_auth", "1", { httpOnly: true, path: "/", sameSite: "lax" });
+      return res;
     }
 
     if (password !== stored) {
       return NextResponse.json({ error: "Incorrect password" }, { status: 401 });
     }
 
-    return NextResponse.json({ ok: true });
+    const res = NextResponse.json({ ok: true });
+    res.cookies.set("vaulted_auth", "1", { httpOnly: true, path: "/", sameSite: "lax" });
+    return res;
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

@@ -55,7 +55,7 @@ export default function LoginPage() {
 
       {/* Logo + tagline */}
       <div className="fade-up" style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
-        <Logo size="lg" />
+        <Logo size="lg" animate />
         <span style={{
           fontFamily: "var(--font-serif)",
           fontStyle: "italic",

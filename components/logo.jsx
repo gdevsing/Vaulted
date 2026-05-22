@@ -2,7 +2,7 @@
 
 import { useTheme } from "@/app/layout";
 
-export default function Logo({ size = "default", showWordmark = true, className = "" }) {
+export default function Logo({ size = "default", showWordmark = true, className = "", animate = false }) {
   const { theme } = useTheme();
 
   const sizes = {
@@ -37,6 +37,10 @@ export default function Logo({ size = "default", showWordmark = true, className 
           x1={c} y1={c}
           x2={c} y2={c - r * 0.68}
           stroke={accent} strokeWidth={s.mark * 0.034} strokeLinecap="round"
+          style={animate ? {
+            transformOrigin: `${c}px ${c}px`,
+            animation: "dialTurn 1.2s cubic-bezier(0.16,1,0.3,1) both",
+          } : undefined}
         />
         {/* Centre dot */}
         <circle cx={c} cy={c} r={s.mark * 0.042} fill={accent} />
