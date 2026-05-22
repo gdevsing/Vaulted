@@ -1,11 +1,18 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import Logo from "@/components/logo";
 import { ThemeToggle } from "@/components/ui/primitives";
 import { useTheme } from "@/app/layout";
 
 export default function TopBar({ right }) {
   const { theme, toggleTheme } = useTheme();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await fetch("/api/logout", { method: "POST" });
+    router.push("/login");
+  };
 
   return (
     <header className="top-bar">
@@ -13,6 +20,22 @@ export default function TopBar({ right }) {
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
         {right}
         <ThemeToggle theme={theme} onToggle={toggleTheme} />
+        <button
+          onClick={handleLogout}
+          style={{
+            background: "none",
+            border: "1px solid var(--border)",
+            borderRadius: "2px 7px 7px 2px",
+            padding: "4px 10px",
+            fontFamily: "var(--font-mono)",
+            fontSize: 9,
+            letterSpacing: "0.1em",
+            color: "var(--ink2)",
+            cursor: "pointer",
+          }}
+        >
+          LOGOUT
+        </button>
       </div>
     </header>
   );
