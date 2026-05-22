@@ -103,66 +103,49 @@ async function runNotify() {
   return { ok: true, message };
 }
 
-// ─── Backup — upload DB to Google Cloud Storage ──────────────────────────────
+// ─── Backup — push DB to GitHub private repo ─────────────────────────────────
 async function runBackup() {
-  const token      = await getSetting("gdrive_token");
-  const bucketName = await getSetting("gdrive_folder_id");
+  const ghToken = await getSetting("github_token");
+  const ghRepo  = await getSetting("github_repo");
 
-  if (!token || !bucketName) {
-    const msg = "Cloud Storage not configured";
+  if (!ghToken || !ghRepo) {
+    const msg = "GitHub backup not configured";
     await recordRun("backup", false, msg);
     return { ok: false, message: msg };
   }
 
-  const { readFile }   = await import("fs/promises");
-  const { createSign } = await import("crypto");
+  const { readFile } = await import("fs/promises");
+  const dbBuffer = await readFile(path.join(process.cwd(), "vaulted.db"));
+  const content  = dbBuffer.toString("base64");
+  const filepath = "vaulted-backup.db";
+  const ghHeaders = {
+    Authorization: `token ${ghToken}`,
+    "Content-Type": "application/json",
+    "User-Agent":   "Vaulted",
+  };
 
-  const dbPath   = path.join(process.cwd(), "vaulted.db");
-  const dbBuffer = await readFile(dbPath);
-  const filename = "vaulted-backup.db";
+  // Get existing file SHA (required by GitHub API to update an existing file)
+  const shaRes  = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${filepath}`, { headers: ghHeaders });
+  const shaData = shaRes.ok ? await shaRes.json() : null;
 
-  const sa  = JSON.parse(token);
-  const now = Math.floor(Date.now() / 1000);
-  const hdr = Buffer.from(JSON.stringify({ alg: "RS256", typ: "JWT" })).toString("base64url");
-  const pld = Buffer.from(JSON.stringify({
-    iss: sa.client_email,
-    scope: "https://www.googleapis.com/auth/devstorage.read_write",
-    aud: "https://oauth2.googleapis.com/token",
-    iat: now, exp: now + 3600,
-  })).toString("base64url");
-  const sign = createSign("RSA-SHA256");
-  sign.update(`${hdr}.${pld}`);
-  const jwt = `${hdr}.${pld}.${sign.sign(sa.private_key, "base64url")}`;
+  const body = {
+    message: `backup: ${new Date().toISOString().split("T")[0]}`,
+    content,
+    ...(shaData?.sha ? { sha: shaData.sha } : {}),
+  };
 
-  const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer", assertion: jwt }),
-  });
-  const { access_token } = await tokenRes.json();
-
-  // GCS overwrites the object automatically — no search or PATCH needed
   const uploadRes = await fetch(
-    `https://storage.googleapis.com/upload/storage/v1/b/${encodeURIComponent(bucketName)}/o?uploadType=media&name=${encodeURIComponent(filename)}`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${access_token}`,
-        "Content-Type": "application/octet-stream",
-      },
-      body: dbBuffer,
-    }
+    `https://api.github.com/repos/${ghRepo}/contents/${filepath}`,
+    { method: "PUT", headers: ghHeaders, body: JSON.stringify(body) }
   );
 
   if (uploadRes.ok) {
-    const msg = `${filename} → gs://${bucketName}`;
+    const msg = `vaulted-backup.db → ${ghRepo}`;
     await recordRun("backup", true, msg);
     return { ok: true, message: msg };
   } else {
-    const errText = await uploadRes.text();
-    console.log(`[run-job] GCS upload failed ${uploadRes.status}: ${errText}`);
-    let errMsg = errText;
-    try { errMsg = JSON.parse(errText)?.error?.message || errText; } catch {}
+    const errData = await uploadRes.json().catch(() => ({}));
+    const errMsg  = errData.message || "GitHub upload failed";
     await recordRun("backup", false, errMsg);
     return { ok: false, message: errMsg };
   }

@@ -44,14 +44,14 @@ const CREDENTIAL_GROUPS = [
   },
   {
     id: "gdrive",
-    label: "Cloud Storage Backup",
+    label: "GitHub Backup",
     icon: "↓",
-    description: "Automatic daily DB backup to Google Cloud Storage",
-    link: "https://console.cloud.google.com/storage",
-    linkLabel: "GCP Console →",
+    description: "Daily DB backup pushed to a private GitHub repository",
+    link: "https://github.com/settings/tokens/new?scopes=repo&description=Vaulted+Backup",
+    linkLabel: "Create token →",
     fields: [
-      { key: "gdrive_token",     label: "Service Account Token", secret: true,  placeholder: "Paste JSON token..." },
-      { key: "gdrive_folder_id", label: "Bucket Name",           secret: false, placeholder: "vaulted-backup" },
+      { key: "github_token", label: "Personal Access Token", secret: true,  placeholder: "ghp_..." },
+      { key: "github_repo",  label: "Repository",            secret: false, placeholder: "username/vaulted-backup" },
     ],
   },
   {
