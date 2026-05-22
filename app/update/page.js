@@ -213,6 +213,8 @@ function AccountUpdateCard({ account, onSave, onSkip }) {
   const [manual, setManual]     = useState(String(account.balance || 0));
   const [note, setNote]         = useState("");
   const [saved, setSaved]       = useState(false);
+  const [saving, setSaving]     = useState(false);
+  const [saveError, setSaveError] = useState(null);
 
   const activeBalance = mode === "no-change"
     ? (account.balance || 0)
@@ -258,7 +260,7 @@ function AccountUpdateCard({ account, onSave, onSkip }) {
   };
 
   const handleSave = async () => {
-    setSaved(true);
+    setSaving(true);
     try {
       await saveSnapshot({
         account_id: account.id,
@@ -266,10 +268,14 @@ function AccountUpdateCard({ account, onSave, onSkip }) {
         note:       note || null,
         method:     mode === "no-change" ? "no_change" : mode === "screenshot" && result ? "ai" : "manual",
       });
+      setSaved(true);
+      setTimeout(() => onSave(activeBalance), 350);
     } catch (e) {
       console.error("saveSnapshot failed:", e);
+      setSaveError("Save failed — check your connection and try again");
+    } finally {
+      setSaving(false);
     }
-    setTimeout(() => onSave(activeBalance), 350);
   };
 
   return (
@@ -405,17 +411,27 @@ function AccountUpdateCard({ account, onSave, onSkip }) {
 
       {/* Actions */}
       <div style={{ padding:"12px 18px", borderTop:"1px solid var(--border)", display:"flex", gap:8 }}>
-        <button onClick={handleSave} disabled={saved} className="btn-press" style={{
+        {saveError && (
+          <div style={{
+            padding:"8px 12px", marginBottom:8,
+            background:"rgba(232,112,112,0.1)", border:"1px solid rgba(232,112,112,0.3)",
+            borderRadius:"2px 8px 8px 2px", fontFamily:"var(--font-mono)",
+            fontSize:9, color:"var(--negative)",
+          }}>
+            ⚠ {saveError}
+          </div>
+        )}
+        <button onClick={handleSave} disabled={saved || saving} className="btn-press" style={{
           flex:1, padding:"12px",
-          background: mode === "no-change" ? "rgba(125,214,138,0.15)" : "var(--gold)",
-          border: mode === "no-change" ? "1px solid var(--positive)" : "none",
+          background: saved ? "rgba(125,214,138,0.15)" : mode === "no-change" ? "rgba(125,214,138,0.15)" : "var(--gold)",
+          border: saved ? "1px solid var(--positive)" : mode === "no-change" ? "1px solid var(--positive)" : "none",
           borderRadius:"2px 9px 9px 2px", fontFamily:"var(--font-mono)", fontSize:11,
           letterSpacing:"0.1em",
-          color: mode === "no-change" ? "var(--positive)" : "#0C0A08",
-          cursor: saved ? "not-allowed" : "pointer",
-          opacity: saved ? 0.6 : 1,
+          color: saved ? "var(--positive)" : mode === "no-change" ? "var(--positive)" : "#0C0A08",
+          cursor: (saved || saving) ? "not-allowed" : "pointer",
+          opacity: (saved || saving) ? 0.7 : 1,
         }}>
-          {saved ? "SAVED ✓" : mode === "no-change" ? "CONFIRM NO CHANGE" : "SAVE BALANCE"}
+          {saved ? "SAVED ✓" : saving ? "SAVING..." : mode === "no-change" ? "CONFIRM NO CHANGE" : "SAVE BALANCE"}
         </button>
         <button onClick={onSkip} className="btn-press" style={{
           padding:"12px 16px", background:"transparent", border:"1px solid var(--border)",
