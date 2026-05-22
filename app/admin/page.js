@@ -449,21 +449,20 @@ function NotifyStatusCard() {
 
   if (!status) return null;
 
+  const accentColor = status.configured ? "var(--positive)" : "var(--negative)";
+
   return (
-    <div style={{
-      padding:"12px 16px",
-      background: status.configured ? "rgba(125,214,138,0.06)" : "rgba(232,112,112,0.06)",
-      border:`1px solid ${status.configured ? "rgba(125,214,138,0.25)" : "rgba(232,112,112,0.25)"}`,
-      borderRadius:"2px 10px 10px 2px",
-      display:"flex", flexDirection:"column", gap:8,
-    }}>
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+    <div className="card fade-up" style={{ padding:"18px 20px", borderLeft:`3px solid ${accentColor}` }}>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
         <div>
-          <div style={{ fontFamily:"var(--font-mono)", fontSize:10, color:"var(--ink)", letterSpacing:"0.06em" }}>
-            {status.configured ? "◎ ntfy.sh connected" : "◎ ntfy.sh not configured"}
+          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:3 }}>
+            <div style={{ width:6, height:6, borderRadius:"50%", background:accentColor, boxShadow:`0 0 6px ${accentColor}` }} />
+            <span style={{ fontFamily:"var(--font-mono)", fontSize:11, color:"var(--ink)" }}>
+              {status.configured ? "ntfy.sh connected" : "ntfy.sh not configured"}
+            </span>
           </div>
           {status.configured && (
-            <div style={{ fontFamily:"var(--font-mono)", fontSize:8, color:"var(--ink2)", marginTop:3 }}>
+            <div style={{ fontFamily:"var(--font-mono)", fontSize:9, color:"var(--ink2)", letterSpacing:"0.06em" }}>
               Topic: {status.topic} · {status.lastNotified ? `Last sent ${new Date(status.lastNotified).toLocaleDateString()}` : "Never sent"}
             </div>
           )}
@@ -480,17 +479,13 @@ function NotifyStatusCard() {
         )}
       </div>
       {testResult && (
-        <div style={{
-          fontFamily:"var(--font-mono)", fontSize:9,
-          color: testResult.ok ? "var(--positive)" : "var(--negative)",
-          letterSpacing:"0.06em",
-        }}>
+        <div style={{ marginTop:8, fontFamily:"var(--font-mono)", fontSize:9, color: testResult.ok ? "var(--positive)" : "var(--negative)", letterSpacing:"0.06em" }}>
           {testResult.ok ? "✓" : "⚠"} {testResult.message}
         </div>
       )}
       {status.configured && (
-        <div style={{ fontFamily:"var(--font-mono)", fontSize:8, color:"var(--ink2)", letterSpacing:"0.06em" }}>
-          Subscribe on your phone: <span style={{ color:"var(--gold)" }}>{status.subscribeUrl}</span>
+        <div style={{ marginTop:8, fontFamily:"var(--font-mono)", fontSize:8, color:"var(--ink2)", letterSpacing:"0.06em" }}>
+          Subscribe: <span style={{ color:"var(--gold)" }}>{status.subscribeUrl}</span>
         </div>
       )}
     </div>
