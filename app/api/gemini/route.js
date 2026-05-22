@@ -75,11 +75,15 @@ Respond with exactly this JSON shape:
 
     const geminiData = await geminiRes.json();
 
-    // Extract text from response
-    const rawText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    // Extract text — Gemini 2.5 thinking models may return multiple parts
+    const parts = geminiData.candidates?.[0]?.content?.parts || [];
+    const rawText = parts.map(p => p.text || "").join("") || "";
 
-    // Parse JSON from response — strip any markdown fences
-    const clean = rawText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+    // Extract the JSON object — handles markdown fences and thinking preamble
+    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+    const clean = jsonMatch
+      ? jsonMatch[0]
+      : rawText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
 
     let parsed;
     try {
