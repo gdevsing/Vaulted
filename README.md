@@ -1,6 +1,6 @@
 # Vaulted
 
-Personal net worth tracker for two — built with Next.js, SQLite, and Gemini AI.
+Personal net worth tracker for a household — built with Next.js, SQLite, and Gemini AI. Supports Husband, Wife, and Joint account ownership.
 
 ## Stack
 
@@ -74,12 +74,16 @@ lib/
 - [x] Milestones & goals
 - [x] Admin panel
 - [x] Backend + SQLite
-- [x] Auth (password set via Admin → Credentials)
+- [x] Auth (session cookie + middleware route protection)
 - [x] ntfy.sh notifications
 - [x] Oracle Cloud deployment
 - [x] SSL via Let's Encrypt
+- [x] Logout button
+- [x] Cron job status panel in Admin
+- [x] Google Drive backup (weekly, single file overwrite)
+- [x] Joint account owner type
+- [x] Desktop font scaling
 - [ ] Gemini AI screenshot agent
-- [ ] Google Drive backup
 
 ## Design
 

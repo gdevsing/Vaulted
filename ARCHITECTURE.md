@@ -23,7 +23,7 @@ graph TD
         Gemini["✦ Google Gemini 2.5 Flash\nAI screenshot → balance"]
         FX["💱 frankfurter.app\nUSD → AUD rates (cached 24h)"]
         Ntfy["🔔 ntfy.sh\nPush notifications"]
-        Drive["☁ Google Drive\nDaily DB backup"]
+        Drive["☁ Google Drive\nWeekly DB backup (Mondays)"]
     end
 
     User -->|"HTTPS"| Nginx
