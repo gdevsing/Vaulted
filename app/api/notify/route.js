@@ -32,7 +32,7 @@ async function buildWeeklySummary(db) {
     : "All accounts up to date";
 
   return {
-    title:   "Time to sync your vault 💰",
+    title:   "Time to sync your vault",
     message: `Net worth: ${totalStr} · ${dueStr}`,
     dueCount: due.length,
     total,
