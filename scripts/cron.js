@@ -60,7 +60,7 @@ async function refreshFxRate() {
   }
 }
 
-// ─── Google Drive backup ──────────────────────────────────────────────────────
+// ─── Google Drive backup (rolling 7 files, one per day of week) ──────────────
 async function backupDb() {
   console.log("[cron] Running DB backup...");
   try {
@@ -77,8 +77,8 @@ async function backupDb() {
 
     const dbPath   = path.join(__dirname, "..", "vaulted.db");
     const dbBuffer = await readFile(dbPath);
-    const date     = new Date().toISOString().slice(0, 10);
-    const filename = `vaulted-backup-${date}.db`;
+    const days     = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"];
+    const filename = `vaulted-${days[new Date().getDay()]}.db`;
 
     // Build JWT for service account
     const sa  = JSON.parse(token);
@@ -102,29 +102,39 @@ async function backupDb() {
     });
     const { access_token } = await tokenRes.json();
 
-    // Upload
+    // Check if file already exists in Drive folder
+    const searchRes = await fetch(
+      `https://www.googleapis.com/drive/v3/files?q=name='${filename}'+and+'${folderId}'+in+parents+and+trashed=false&fields=files(id)`,
+      { headers: { "Authorization": `Bearer ${access_token}` } }
+    );
+    const { files } = await searchRes.json();
+    const existingId = files?.[0]?.id;
+
     const boundary = "vaulted_backup";
-    const meta = JSON.stringify({ name: filename, parents: [folderId] });
     const uploadBody = Buffer.concat([
-      Buffer.from(`--${boundary}\r\nContent-Type: application/json\r\n\r\n${meta}\r\n--${boundary}\r\nContent-Type: application/octet-stream\r\n\r\n`),
+      Buffer.from(`--${boundary}\r\nContent-Type: application/json\r\n\r\n${
+        existingId ? "{}" : JSON.stringify({ name: filename, parents: [folderId] })
+      }\r\n--${boundary}\r\nContent-Type: application/octet-stream\r\n\r\n`),
       dbBuffer,
       Buffer.from(`\r\n--${boundary}--`),
     ]);
 
-    const uploadRes = await fetch(
-      "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
-      {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${access_token}`,
-          "Content-Type": `multipart/related; boundary=${boundary}`,
-        },
-        body: uploadBody,
-      }
-    );
+    // Update existing file or create new one
+    const url = existingId
+      ? `https://www.googleapis.com/upload/drive/v3/files/${existingId}?uploadType=multipart`
+      : "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart";
+
+    const uploadRes = await fetch(url, {
+      method: existingId ? "PATCH" : "POST",
+      headers: {
+        "Authorization": `Bearer ${access_token}`,
+        "Content-Type": `multipart/related; boundary=${boundary}`,
+      },
+      body: uploadBody,
+    });
 
     if (uploadRes.ok) {
-      console.log(`[cron] ✓ Backed up to Drive: ${filename}`);
+      console.log(`[cron] ✓ Backed up to Drive: ${filename} (${existingId ? "updated" : "created"})`);
       await db.execute({
         sql: "INSERT OR REPLACE INTO settings (key, value) VALUES (?,?)",
         args: ["last_backup", new Date().toISOString()],
