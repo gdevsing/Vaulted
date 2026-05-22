@@ -8,8 +8,9 @@ Personal net worth tracker for two — built with Next.js, SQLite, and Gemini AI
 |---|---|
 | Frontend | Next.js 14 (App Router) |
 | Backend | Next.js API Routes |
-| Database | SQLite (better-sqlite3) |
+| Database | SQLite via @libsql/client |
 | AI Vision | Google Gemini 2.5 Flash |
+| FX Rates | frankfurter.app (cached 24h) |
 | Notifications | ntfy.sh |
 | Hosting | Oracle Cloud Always Free |
 | SSL | Let's Encrypt |
@@ -23,6 +24,12 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000)
 
+## Deployment
+
+See [DEPLOY.md](DEPLOY.md) for step-by-step instructions.
+
+Live at: **https://vaulted.gdevsingh.com**
+
 ## Project structure
 
 ```
@@ -32,31 +39,35 @@ app/
   update/       # Guided weekly update flow
   trends/       # Charts and history
   milestones/   # Goals and achievements
-  admin/        # Account management
+  admin/        # Account + credential management
+  api/          # All backend API routes
 components/
   logo.jsx      # Dial mark + Audiowide wordmark
   nav.jsx       # Bottom navigation
   top-bar.jsx   # App header
   ui/           # Shared primitives
 lib/
+  db.js         # SQLite client, schema, seed data
+  api.js        # Fetch wrappers for all API routes
   tokens.js     # Design tokens
-  mock-data.js  # Mock data (replaced by DB later)
   utils.js      # Helper functions
-design/         # Wireframes and logo explorations
 ```
 
-## Build order
+## Status
 
 - [x] Scaffold + design tokens + logo
-- [ ] Dashboard
-- [ ] Update flow
-- [ ] Trends & charts
-- [ ] Milestones & goals
-- [ ] Admin panel
-- [ ] Backend + SQLite
+- [x] Dashboard
+- [x] Update flow
+- [x] Trends & charts
+- [x] Milestones & goals
+- [x] Admin panel
+- [x] Backend + SQLite
+- [x] Auth (password set via Admin → Credentials)
+- [x] ntfy.sh notifications
+- [x] Oracle Cloud deployment
+- [x] SSL via Let's Encrypt
 - [ ] Gemini AI screenshot agent
-- [ ] ntfy.sh notifications
-- [ ] Oracle Cloud deployment
+- [ ] Google Drive backup
 
 ## Design
 

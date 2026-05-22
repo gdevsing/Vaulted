@@ -12,11 +12,25 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(false);
 
-  const handleLogin = () => {
-    // Mock auth — replace with real check later
-    if (password.length > 0) {
-      router.push("/dashboard");
-    } else {
+  const handleLogin = async () => {
+    if (!password) {
+      setError(true);
+      setTimeout(() => setError(false), 1000);
+      return;
+    }
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      if (res.ok) {
+        router.push("/dashboard");
+      } else {
+        setError(true);
+        setTimeout(() => setError(false), 1000);
+      }
+    } catch {
       setError(true);
       setTimeout(() => setError(false), 1000);
     }
