@@ -436,13 +436,14 @@ export default function UpdatePage() {
   const [done, setDone]           = useState([]);
   const [skipped, setSkipped]     = useState([]);
   const [complete, setComplete]   = useState(false);
+  const [showAll, setShowAll]     = useState(false);
   const { theme } = useTheme();
 
   useEffect(() => {
     fetchAccounts().then(accs => { setAccounts(accs); setLoading(false); }).catch(console.error);
   }, []);
 
-  const dueAccounts = getDueAccounts(accounts);
+  const dueAccounts = showAll ? accounts.filter(a => !a.deleted) : getDueAccounts(accounts);
   const remaining   = dueAccounts.filter(a => !done.includes(a.id) && !skipped.includes(a.id));
   const current     = remaining[0];
 
@@ -458,7 +459,7 @@ export default function UpdatePage() {
     if (done.length + next.length >= dueAccounts.length) setTimeout(() => setComplete(true), 300);
   };
 
-  const handleReset = () => { setDone([]); setSkipped([]); setComplete(false); };
+  const handleReset = () => { setDone([]); setSkipped([]); setComplete(false); setShowAll(false); };
 
   if (loading) return (
     <>
@@ -481,11 +482,25 @@ export default function UpdatePage() {
           <CompletionScreen count={done.length} onReset={handleReset} />
         ) : (
           <>
-            <div className="fade-up">
-              <div style={{ fontFamily:"var(--font-display)", fontSize:20, color:"var(--ink)", marginBottom:4 }}>Weekly Sync</div>
-              <div style={{ fontFamily:"var(--font-mono)", fontSize:10, color:"var(--ink2)", letterSpacing:"0.08em" }}>
-                {remaining.length} account{remaining.length !== 1 ? "s" : ""} remaining
+            <div className="fade-up" style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
+              <div>
+                <div style={{ fontFamily:"var(--font-display)", fontSize:20, color:"var(--ink)", marginBottom:4 }}>
+                  {showAll ? "Manual Sync" : "Weekly Sync"}
+                </div>
+                <div style={{ fontFamily:"var(--font-mono)", fontSize:10, color:"var(--ink2)", letterSpacing:"0.08em" }}>
+                  {remaining.length} account{remaining.length !== 1 ? "s" : ""} remaining
+                </div>
               </div>
+              <button onClick={() => { setShowAll(v => !v); setDone([]); setSkipped([]); }} className="btn-press" style={{
+                fontFamily:"var(--font-mono)", fontSize:8, letterSpacing:"0.1em",
+                padding:"5px 10px", borderRadius:"2px 8px 8px 2px", cursor:"pointer",
+                background: showAll ? "rgba(255,210,74,0.12)" : "transparent",
+                border: showAll ? "1px solid var(--gold)" : "1px solid var(--border)",
+                color: showAll ? "var(--gold)" : "var(--ink2)",
+                transition:"all 0.2s",
+              }}>
+                {showAll ? "ALL ACCOUNTS" : "DUE ONLY"}
+              </button>
             </div>
 
             <div className="fade-up fade-up-1">
@@ -527,10 +542,18 @@ export default function UpdatePage() {
               <div style={{
                 textAlign:"center", padding:"48px 24px",
                 border:"1px dashed var(--border)", borderRadius:"3px 14px 14px 3px",
+                display:"flex", flexDirection:"column", alignItems:"center", gap:12,
               }}>
-                <div style={{ fontSize:28, marginBottom:12 }}>◎</div>
-                <div style={{ fontFamily:"var(--font-display)", fontSize:16, color:"var(--ink)", marginBottom:6 }}>All up to date</div>
+                <div style={{ fontSize:28 }}>◎</div>
+                <div style={{ fontFamily:"var(--font-display)", fontSize:16, color:"var(--ink)" }}>All up to date</div>
                 <div style={{ fontFamily:"var(--font-mono)", fontSize:10, color:"var(--ink2)" }}>No accounts due for sync</div>
+                <button onClick={() => setShowAll(true)} className="btn-press" style={{
+                  marginTop:4, fontFamily:"var(--font-mono)", fontSize:9, letterSpacing:"0.1em",
+                  padding:"8px 16px", borderRadius:"2px 8px 8px 2px", cursor:"pointer",
+                  background:"transparent", border:"1px solid var(--border)", color:"var(--ink2)",
+                }}>
+                  UPDATE ALL ACCOUNTS ANYWAY
+                </button>
               </div>
             ) : null}
 
