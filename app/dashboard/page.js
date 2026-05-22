@@ -16,6 +16,7 @@ function OwnerFilter({ active, onChange }) {
     { key: "all", label: "COMBINED" },
     { key: "H",   label: "HUSBAND"  },
     { key: "W",   label: "WIFE"     },
+    { key: "J",   label: "JOINT"    },
   ];
   return (
     <div style={{ display: "flex", gap: 4, background: "var(--ink3)", borderRadius: "3px 10px 10px 3px", padding: 3 }}>
