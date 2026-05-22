@@ -1,10 +1,8 @@
 # To-Do List
 
 ## Features & Improvements
-- [ ] **App Data Entry Optimization (Sundays)**
-  - Add a **"No Change"** option/button when updating weekly app data.
-  - *Use Case:* Helps streamline entries for slow-moving or fixed accounts (like Superannuation) where data does not change every single week.
-- [ ] **Gemini AI screenshot agent** — upload screenshot → auto-extract balance on /update page
+
+Nothing pending — all features shipped. ✓
 
 ---
 
@@ -19,7 +17,9 @@
 - [x] app_password set in Admin → Credentials
 - [x] app_url set to https://vaulted.gdevsingh.com
 - [x] Google Drive weekly backup configured
-- [ ] Gemini API key — add in Admin → Credentials → Gemini AI
+- [x] Gemini API key set in Admin → Credentials → Gemini AI
+- [x] No Change tab on update page
+- [x] Update any account any time toggle
 
 ---
 
