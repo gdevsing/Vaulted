@@ -83,7 +83,9 @@ lib/
 - [x] Google Drive backup (weekly, single file overwrite)
 - [x] Joint account owner type
 - [x] Desktop font scaling
-- [ ] Gemini AI screenshot agent
+- [x] Gemini AI screenshot agent
+- [x] No Change tab on update page
+- [x] Update any account any time (not just when due)
 
 ## Design
 
