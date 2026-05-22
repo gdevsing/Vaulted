@@ -30,6 +30,19 @@ async function getAppUrl() {
   return (await getSetting("app_url")) || "http://localhost:3000";
 }
 
+// ─── Run history (last 3 per job) ─────────────────────────────────────────────
+async function recordRun(type, ok, message) {
+  const key = `cron_${type}_history`;
+  const existing = await getSetting(key);
+  const history = existing ? JSON.parse(existing) : [];
+  history.unshift({ time: new Date().toISOString(), ok, message });
+  const trimmed = history.slice(0, 3);
+  await db.execute({
+    sql: "INSERT OR REPLACE INTO settings (key, value) VALUES (?,?)",
+    args: [key, JSON.stringify(trimmed)],
+  });
+}
+
 // ─── Weekly notification ──────────────────────────────────────────────────────
 async function sendWeeklyNotification() {
   console.log("[cron] Sending weekly notification...");
@@ -39,11 +52,14 @@ async function sendWeeklyNotification() {
     const data = await res.json();
     if (data.sent) {
       console.log(`[cron] ✓ Sent: "${data.message}"`);
+      await recordRun("notify", true, data.message);
     } else {
       console.error("[cron] Failed:", data.error);
+      await recordRun("notify", false, data.error || "Unknown error");
     }
   } catch (err) {
     console.error("[cron] Error:", err.message);
+    await recordRun("notify", false, err.message);
   }
 }
 
@@ -55,8 +71,10 @@ async function refreshFxRate() {
     const res  = await fetch(`${url}/api/fx?from=USD&to=AUD`);
     const data = await res.json();
     console.log(`[cron] ✓ 1 USD = ${data.rate} AUD`);
+    await recordRun("fx", true, `1 USD = ${data.rate} AUD`);
   } catch (err) {
     console.error("[cron] FX error:", err.message);
+    await recordRun("fx", false, err.message);
   }
 }
 
@@ -77,8 +95,7 @@ async function backupDb() {
 
     const dbPath   = path.join(__dirname, "..", "vaulted.db");
     const dbBuffer = await readFile(dbPath);
-    const days     = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"];
-    const filename = `vaulted-${days[new Date().getDay()]}.db`;
+    const filename = "vaulted-backup.db";
 
     // Build JWT for service account
     const sa  = JSON.parse(token);
@@ -135,15 +152,15 @@ async function backupDb() {
 
     if (uploadRes.ok) {
       console.log(`[cron] ✓ Backed up to Drive: ${filename} (${existingId ? "updated" : "created"})`);
-      await db.execute({
-        sql: "INSERT OR REPLACE INTO settings (key, value) VALUES (?,?)",
-        args: ["last_backup", new Date().toISOString()],
-      });
+      await recordRun("backup", true, `${filename} ${existingId ? "updated" : "created"}`);
     } else {
-      console.error("[cron] Drive upload failed:", await uploadRes.text());
+      const errText = await uploadRes.text();
+      console.error("[cron] Drive upload failed:", errText);
+      await recordRun("backup", false, errText);
     }
   } catch (err) {
     console.error("[cron] Backup error:", err.message);
+    await recordRun("backup", false, err.message);
   }
 }
 
@@ -157,11 +174,11 @@ async function start() {
   console.log(`[cron] Vaulted scheduler starting`);
   console.log(`[cron] Notification: ${notifyDay}s at 9:00 AM AEST`);
   console.log(`[cron] FX refresh:   daily at 6:00 AM AEST`);
-  console.log(`[cron] DB backup:    daily at 2:00 AM AEST`);
+  console.log(`[cron] DB backup:    Mondays at 2:00 AM AEST`);
 
   cron.schedule(`0 9 * * ${dayNum}`,  sendWeeklyNotification, { timezone: "Australia/Sydney" });
   cron.schedule("0 6 * * *",          refreshFxRate,           { timezone: "Australia/Sydney" });
-  cron.schedule("0 2 * * *",          backupDb,                { timezone: "Australia/Sydney" });
+  cron.schedule("0 2 * * 1",          backupDb,                { timezone: "Australia/Sydney" });
 
   console.log("[cron] ✓ Running. Jobs scheduled.");
 }
