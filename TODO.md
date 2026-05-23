@@ -11,11 +11,11 @@ Nothing pending — all features shipped. ✓
 - [x] Node, PM2, Nginx installed
 - [x] Repo cloned + built on server
 - [x] HTTPS via Let's Encrypt (auto-renews)
-- [x] DNS — vaulted.gdevsingh.com → 168.138.8.134
+- [x] DNS — your-domain.com → your-vps-ip
 - [x] Session cookie auth + middleware route protection
 - [x] Logout button
 - [x] app_password set in Admin → Credentials
-- [x] app_url set to https://vaulted.gdevsingh.com
+- [x] app_url set to https://your-domain.com
 - [x] GitHub private repo backup configured (switched from Google Drive)
 - [x] Gemini API key set in Admin → Credentials → Gemini AI
 - [x] No Change tab on update page
@@ -33,7 +33,7 @@ Nothing pending — all features shipped. ✓
 
 ## SSH Command
 ```bash
-ssh -i ~/Documents/Vaulted/"oracle cloud keys "/ssh-key-2026-05-22\ \(3\).key ubuntu@168.138.8.134
+ssh -i /path/to/your/ssh-key.key ubuntu@your-vps-ip
 ```
 
 ## Deploy to Server

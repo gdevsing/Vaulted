@@ -21,7 +21,7 @@ Watch the deploy at: **github.com/gdevsing/Vaulted → Actions tab**
 ### 1 — SSH into the server
 
 ```bash
-ssh -i ~/Documents/Vaulted/"oracle cloud keys"/ssh-key-2026-05-22\ \(3\).key ubuntu@168.138.8.134
+ssh -i /path/to/your/ssh-key.key ubuntu@your-vps-ip
 ```
 
 ### 2 — Pull latest code and rebuild
@@ -42,7 +42,7 @@ pm2 status
 
 Both `vaulted` and `vaulted-cron` should show `online`.
 
-Then visit **https://vaulted.gdevsingh.com** to confirm changes are live.
+Then visit **https://your-domain.com** to confirm changes are live.
 
 ---
 

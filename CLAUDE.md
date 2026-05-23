@@ -17,7 +17,7 @@ Read this at the start of every session.
 A personal net worth tracker for two people (husband + wife + joint, single shared login).
 Tracks 10 accounts across cash, shares, crypto, and super.
 Hosted on Oracle Cloud Always Free. Total ongoing cost: $0.
-Live at: https://vaulted.gdevsingh.com
+Live at: https://your-domain.com
 
 ---
 
@@ -70,7 +70,7 @@ Never stored in .env files or committed to git.
 | ntfy_topic     | ntfy.sh notification topic          | Create at https://ntfy.sh               |
 | ntfy_server    | ntfy server URL                     | Default: https://ntfy.sh                |
 | ntfy_password  | ntfy password (private topics only) | Optional                                |
-| app_url        | Public URL of the deployed app      | https://vaulted.gdevsingh.com           |
+| app_url        | Public URL of the deployed app      | https://your-domain.com           |
 | app_password   | Login password for the app          | Set in Admin → Credentials              |
 
 ---
@@ -161,7 +161,7 @@ npm run start    # production server (on VPS with PM2)
 
 ## Current Status
 
-All features built and deployed at https://vaulted.gdevsingh.com
+All features built and deployed at https://your-domain.com
 
 ### Completed
 - ✅ All 6 screens (login, dashboard, update, trends, milestones, admin)

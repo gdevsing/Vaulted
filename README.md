@@ -90,7 +90,7 @@ Open [http://localhost:3000](http://localhost:3000)
 
 See [DEPLOY.md](DEPLOY.md) for step-by-step instructions.
 
-Live at: **https://vaulted.gdevsingh.com**
+Live at: **https://your-domain.com**
 
 ## Project structure
 
