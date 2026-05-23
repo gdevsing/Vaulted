@@ -2,9 +2,6 @@
 
 Most finance apps want access to your bank. Vaulted doesn't. You take a screenshot, AI reads the balance, your net worth updates. Everything runs on your own server and costs nothing to keep running.
 
-> 📹 **Demo video coming soon** — drop a screen recording of the live app here
-
----
 
 ## Screenshots
 
