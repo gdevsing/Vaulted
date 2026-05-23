@@ -3,53 +3,42 @@
 ## System Diagram
 
 ```mermaid
-graph TD
-    User["👤 User\nBrowser / Phone"]
-    Dev["👨‍💻 Developer\nPush to main"]
+flowchart LR
+    You(["👤 You"])
 
-    subgraph GitHub["GitHub"]
-        Repo["gdevsing/Vaulted\nSource code"]
-        Actions["GitHub Actions\nCI/CD Pipeline"]
+    subgraph GH["GitHub"]
+        main["main"]
+        Actions["Actions"]
     end
 
-    subgraph Oracle["Oracle Cloud — Always Free VPS (168.138.8.134)"]
-        LE["🔒 Let's Encrypt\nSSL Certificate"]
-        Nginx["Nginx\nReverse Proxy :80 / :443"]
-        PM2["PM2\nProcess Manager"]
-
-        subgraph App["Next.js 14 App (:3000)"]
-            Pages["Pages\n/login /dashboard /update\n/trends /milestones /admin"]
-            API["API Routes\n/api/accounts /api/networth\n/api/settings /api/login\n/api/gemini /api/fx /api/notify"]
-        end
-
-        Cron["vaulted-cron\nNode-cron scheduler"]
-        SQLite["🗄 SQLite\nvaulted.db"]
+    subgraph VPS["Oracle VPS · vaulted.gdevsingh.com"]
+        Nginx["Nginx
+:443"]
+        Next["Next.js
+:3000"]
+        Cron["Cron"]
+        DB[("SQLite")]
     end
 
-    subgraph External["External Services"]
-        Gemini["✦ Google Gemini 2.5 Flash\nAI screenshot → balance"]
-        FX["💱 frankfurter.app\nUSD → AUD rates (cached 24h)"]
-        Ntfy["🔔 ntfy.sh\nPush notifications"]
-        GHBackup["☁ GitHub Private Repo\nWeekly DB backup (Mondays)"]
+    subgraph Ext["External Services"]
+        Gemini["✦ Gemini AI"]
+        FX["💱 FX Rates"]
+        Ntfy["🔔 ntfy.sh"]
+        Backup["☁ GH Backup"]
     end
 
-    Dev -->|"merge PR"| Repo
-    Repo -->|"triggers"| Actions
-    Actions -->|"SSH deploy"| PM2
-
-    User -->|"HTTPS"| Nginx
-    LE -->|"TLS cert"| Nginx
-    Nginx -->|"proxy_pass"| App
-    PM2 -->|"manages & restarts"| App
-    PM2 -->|"manages & restarts"| Cron
-    Pages -->|"fetch"| API
-    API -->|"reads / writes"| SQLite
-    Cron -->|"reads / writes"| SQLite
-    API -->|"screenshot analysis"| Gemini
-    Cron -->|"exchange rates direct"| FX
-    API -->|"exchange rates"| FX
-    Cron -->|"weekly reminders"| Ntfy
-    Cron -->|"backup vaulted.db"| GHBackup
+    You -->|"merge PR"| main
+    You -->|"HTTPS"| Nginx
+    main --> Actions
+    Actions -->|"SSH deploy"| Nginx
+    Nginx --> Next
+    Next <-->|"read / write"| DB
+    Cron <-->|"read / write"| DB
+    Next -->|"screenshot"| Gemini
+    Next -->|"rates"| FX
+    Cron -->|"6am"| FX
+    Cron -->|"Sunday 9am"| Ntfy
+    Cron -->|"Monday 2am"| Backup
 ```
 
 ---
