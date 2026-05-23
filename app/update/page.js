@@ -205,7 +205,7 @@ function AccountUpdateCard({ account, onSave, onSkip }) {
   const { theme } = useTheme();
   const color = ASSETS[account.asset]?.[theme] || "var(--ink2)";
 
-  const [mode, setMode]         = useState("screenshot");
+  const [mode, setMode]         = useState("manual");
   const [file, setFile]         = useState(null);
   const [loading, setLoading]   = useState(false);
   const [result, setResult]     = useState(null);   // { balance, currency, confidence, raw }
@@ -307,8 +307,8 @@ function AccountUpdateCard({ account, onSave, onSkip }) {
       {/* Mode tabs */}
       <div style={{ display:"flex", borderBottom:"1px solid var(--border)", background:"rgba(0,0,0,0.1)" }}>
         {[
-          { key:"screenshot",  label:"📸 Screenshot" },
           { key:"manual",      label:"✎ Manual" },
+          { key:"screenshot",  label:"📸 Screenshot" },
           { key:"no-change",   label:"✓ No Change" },
         ].map(({ key, label }) => (
           <button key={key} onClick={() => setMode(key)} className="btn-press" style={{
