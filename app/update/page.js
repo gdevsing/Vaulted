@@ -4,7 +4,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import TopBar from "@/components/top-bar";
 import BottomNav from "@/components/nav";
 import { useTheme } from "@/app/layout";
-import { fetchAccounts, saveSnapshot } from "@/lib/api";
+import { fetchAccounts, saveSnapshot, fetchFxRate } from "@/lib/api";
 import { fmt, assetLabel, daysAgo } from "@/lib/utils";
 import { ASSETS } from "@/lib/tokens";
 
@@ -210,19 +210,35 @@ function AccountUpdateCard({ account, onSave, onSkip }) {
   const [loading, setLoading]   = useState(false);
   const [result, setResult]     = useState(null);   // { balance, currency, confidence, raw }
   const [aiError, setAiError]   = useState(null);
-  const [manual, setManual]     = useState(String(account.balance || 0));
+  const [manual, setManual]     = useState(String(account.native_balance || account.balance || 0));
   const [note, setNote]         = useState("");
   const [saved, setSaved]       = useState(false);
   const [saving, setSaving]     = useState(false);
   const [saveError, setSaveError] = useState(null);
+  const [fxRate, setFxRate]     = useState(null);
 
+  const isNonAud = account.currency !== "AUD";
+
+  useEffect(() => {
+    if (!isNonAud) return;
+    fetchFxRate(account.currency, "AUD").then(({ rate }) => setFxRate(rate));
+  }, [account.id, account.currency, isNonAud]);
+
+  // activeBalance is always in the account's native currency
   const activeBalance = mode === "no-change"
-    ? (account.balance || 0)
+    ? (account.native_balance ?? account.balance ?? 0)
     : mode === "screenshot" && result?.balance != null
       ? result.balance
       : parseFloat(manual) || 0;
 
-  const diff = activeBalance - (account.balance || 0);
+  // audBalance is always AUD — what we actually save
+  const audBalance = mode === "no-change"
+    ? (account.balance || 0)
+    : isNonAud && fxRate
+      ? Math.round(activeBalance * fxRate * 100) / 100
+      : activeBalance;
+
+  const diff = audBalance - (account.balance || 0);
 
   // ── Real Gemini call ──────────────────────────────────────────────────────
   const handleFileSelect = async (f) => {
@@ -264,12 +280,13 @@ function AccountUpdateCard({ account, onSave, onSkip }) {
     try {
       await saveSnapshot({
         account_id: account.id,
-        balance:    activeBalance,
+        balance:    audBalance,
         note:       note || null,
+        fx_rate:    isNonAud && fxRate ? fxRate : null,
         method:     mode === "no-change" ? "no_change" : mode === "screenshot" && result ? "ai" : "manual",
       });
       setSaved(true);
-      setTimeout(() => onSave(activeBalance), 350);
+      setTimeout(() => onSave(audBalance), 350);
     } catch (e) {
       console.error("saveSnapshot failed:", e);
       setSaveError("Save failed — check your connection and try again");
@@ -300,6 +317,11 @@ function AccountUpdateCard({ account, onSave, onSkip }) {
             <div style={{ fontFamily:"var(--font-display)", fontSize:16, color:"var(--ink)", marginTop:2 }}>
               {fmt(account.balance || 0)}
             </div>
+            {isNonAud && account.native_balance != null && (
+              <div style={{ fontFamily:"var(--font-mono)", fontSize:9, color:"var(--ink2)", marginTop:1 }}>
+                {account.currency} {fmt(account.native_balance)}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -376,8 +398,24 @@ function AccountUpdateCard({ account, onSave, onSkip }) {
           </div>
         )}
 
+        {/* AUD conversion hint for non-AUD accounts */}
+        {isNonAud && mode !== "no-change" && activeBalance > 0 && (
+          <div style={{
+            marginTop:8, padding:"6px 10px",
+            background:"rgba(255,210,74,0.06)", border:"1px solid rgba(255,210,74,0.2)",
+            borderRadius:"2px 8px 8px 2px",
+            fontFamily:"var(--font-mono)", fontSize:9, color:"var(--ink2)",
+            display:"flex", justifyContent:"space-between",
+          }}>
+            <span>{account.currency} {fmt(activeBalance)}</span>
+            <span style={{ color:"var(--gold)" }}>
+              {fxRate ? `≈ AUD ${fmt(audBalance)}` : "fetching rate..."}
+            </span>
+          </div>
+        )}
+
         {/* Diff indicator */}
-        {diff !== 0 && activeBalance > 0 && (
+        {diff !== 0 && audBalance > 0 && (
           <div style={{
             marginTop:10, padding:"7px 12px",
             background: diff > 0 ? "rgba(125,214,138,0.08)" : "rgba(232,112,112,0.08)",
