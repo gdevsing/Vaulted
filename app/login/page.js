@@ -55,7 +55,7 @@ function QuoteFooter() {
       }}>
         "{quote.text}"
         {quote.author && (
-          <span style={{ display: "block", fontStyle: "normal", fontSize: 10, marginTop: 4, color: "var(--ink3)", letterSpacing: "0.06em" }}>
+          <span style={{ display: "block", fontStyle: "normal", fontSize: 10, marginTop: 4, color: "var(--ink2)", letterSpacing: "0.06em" }}>
             — {quote.author}
           </span>
         )}
@@ -64,7 +64,7 @@ function QuoteFooter() {
         fontFamily: "var(--font-mono)",
         fontSize: 8,
         letterSpacing: "0.1em",
-        color: "var(--ink3)",
+        color: "var(--ink2)",
         marginTop: 4,
       }}>
         © 2026 Gurdev Singh. MIT Licence.
