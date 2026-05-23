@@ -5,6 +5,16 @@ Read this at the start of every session.
 
 ---
 
+## ⚠️ Working Rules
+
+1. **Never push code without approval.** Always explain what you plan to change and why, then wait for the go-ahead before implementing or pushing anything.
+2. **Never implement without discussing first.** Diagnose and propose — then wait.
+
+---
+
+
+---
+
 ## What is Vaulted?
 
 A personal net worth tracker for two people (husband + wife, single shared login).
@@ -150,10 +160,26 @@ npm run start    # production server (on VPS with PM2)
 
 ---
 
-## What's next
+## Current status
 
-- [ ] Gemini AI integration — screenshot → balance extraction in update flow
-- [ ] ntfy.sh cron job — Sunday notification trigger
-- [ ] Oracle Cloud deployment — Ubuntu VPS, Nginx, PM2, Let's Encrypt
-- [ ] Google Drive backup — daily cron uploads vaulted.db
-- [ ] Auth hardening — replace mock login with bcrypt password check against DB
+All core features are built and deployed at https://vaulted.gdevsingh.com
+
+### Completed
+- ✅ All 6 screens (login, dashboard, update, trends, milestones, admin)
+- ✅ SQLite backend with full API routes
+- ✅ Gemini 2.5 Flash screenshot extraction
+- ✅ ntfy.sh push notifications (Sunday 9am AEST)
+- ✅ FX rate caching via frankfurter.app (daily 6am direct call)
+- ✅ GitHub private repo DB backup (Monday 2am)
+- ✅ Session auth + middleware route protection
+- ✅ Logout
+- ✅ Joint owner type (H/W/J)
+- ✅ No Change tab on update flow
+- ✅ Show all accounts toggle
+- ✅ Logo animation on login
+- ✅ Oracle Cloud deployment (PM2 + Nginx + Let's Encrypt)
+- ✅ CI/CD via GitHub Actions (auto-deploy on merge to main)
+
+### Pending
+- [ ] Add GitHub secrets to activate CI/CD (VPS_HOST, VPS_USER, SSH_PRIVATE_KEY) — see TODO.md Stage 8
+- [ ] Auth hardening with bcrypt (current: plaintext compare)

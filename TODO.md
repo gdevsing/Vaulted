@@ -32,3 +32,19 @@ ssh -i ~/Documents/Vaulted/"oracle cloud keys "/ssh-key-2026-05-22\ \(3\).key ub
 ```bash
 cd /home/ubuntu/vaulted && git pull origin main && npm run build && pm2 reload all
 ```
+
+---
+
+## Stage 8 — CI/CD Auto-Deploy
+
+The GitHub Actions workflow is already created (`.github/workflows/deploy.yml`).
+It triggers automatically on every merge to main — no more manual SSH deploys.
+
+You need to add 3 secrets in GitHub to activate it:
+
+- [ ] Go to **github.com/gdevsing/Vaulted → Settings → Secrets and variables → Actions**
+- [ ] Add secret: `VPS_HOST` → `168.138.8.134`
+- [ ] Add secret: `VPS_USER` → `ubuntu`
+- [ ] Add secret: `SSH_PRIVATE_KEY` → contents of your `.key` file in `~/Documents/Vaulted/oracle cloud keys/`
+- [ ] Test by merging any PR and watching the **Actions** tab on GitHub
+- [ ] Verify both processes still running after deploy: `pm2 status`

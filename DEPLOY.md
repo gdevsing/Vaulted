@@ -1,25 +1,30 @@
 # Deploying to Production
 
-## 1 — Push code to GitHub (from your Mac)
+## Automatic Deploy (CI/CD) — preferred
 
-```bash
-cd ~/Documents/Vaulted/Vaulted
-git add .
-git commit --no-gpg-sign -m "feat: your change description"
-git push origin main
-```
+Every merge to main triggers GitHub Actions which automatically:
+1. SSHes into the VPS
+2. Pulls latest code
+3. Builds
+4. Restarts PM2
 
----
+**You just merge the PR. That's it.**
 
-## 2 — SSH into the server
+Watch the deploy at: **github.com/gdevsing/Vaulted → Actions tab**
 
-```bash
-ssh -i ~/Documents/Vaulted/"oracle cloud keys "/ssh-key-2026-05-22\ \(3\).key ubuntu@168.138.8.134
-```
+> ⚠️ Requires 3 GitHub secrets to be set — see TODO.md Stage 8 if not yet configured.
 
 ---
 
-## 3 — Pull latest code and rebuild
+## Manual Deploy (backup / if CI/CD is down)
+
+### 1 — SSH into the server
+
+```bash
+ssh -i ~/Documents/Vaulted/"oracle cloud keys"/ssh-key-2026-05-22\ \(3\).key ubuntu@168.138.8.134
+```
+
+### 2 — Pull latest code and rebuild
 
 ```bash
 cd /home/ubuntu/vaulted
@@ -29,9 +34,7 @@ npm run build
 pm2 reload all
 ```
 
----
-
-## 4 — Verify it's running
+### 3 — Verify it's running
 
 ```bash
 pm2 status
@@ -39,7 +42,7 @@ pm2 status
 
 Both `vaulted` and `vaulted-cron` should show `online`.
 
-Then visit **https://vaulted.gdevsingh.com** to confirm the changes are live.
+Then visit **https://vaulted.gdevsingh.com** to confirm changes are live.
 
 ---
 
@@ -48,6 +51,7 @@ Then visit **https://vaulted.gdevsingh.com** to confirm the changes are live.
 **View live logs:**
 ```bash
 pm2 logs vaulted --lines 50
+pm2 logs vaulted-cron --lines 50
 ```
 
 **Restart from scratch:**
@@ -60,4 +64,9 @@ pm2 start ecosystem.config.cjs
 ```bash
 sudo systemctl status nginx
 sudo systemctl restart nginx
+```
+
+**SSL renewal (auto but can check manually):**
+```bash
+sudo certbot renew --dry-run
 ```

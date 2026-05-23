@@ -3,39 +3,42 @@
 ## System Diagram
 
 ```mermaid
-graph TD
-    User["👤 User\nBrowser / Phone"]
+flowchart LR
+    You(["👤 You"])
 
-    subgraph Oracle["Oracle Cloud — Always Free VPS (168.138.8.134)"]
-        LE["🔒 Let's Encrypt\nSSL Certificate"]
-        Nginx["Nginx\nReverse Proxy :80 / :443"]
-        PM2["PM2\nProcess Manager"]
-
-        subgraph App["Next.js 14 App (:3000)"]
-            Pages["Pages\n/login /dashboard /update\n/trends /milestones /admin"]
-            API["API Routes\n/api/accounts /api/networth\n/api/settings /api/login\n/api/gemini /api/fx /api/notify"]
-        end
-
-        SQLite["🗄 SQLite\nvaulted.db"]
+    subgraph GH["GitHub"]
+        main["main"]
+        Actions["Actions"]
     end
 
-    subgraph External["External Services"]
-        Gemini["✦ Google Gemini 2.5 Flash\nAI screenshot → balance"]
-        FX["💱 frankfurter.app\nUSD → AUD rates (cached 24h)"]
-        Ntfy["🔔 ntfy.sh\nPush notifications"]
-        Drive["☁ Google Drive\nWeekly DB backup (Mondays)"]
+    subgraph VPS["Oracle VPS · vaulted.gdevsingh.com"]
+        Nginx["Nginx
+:443"]
+        Next["Next.js
+:3000"]
+        Cron["Cron"]
+        DB[("SQLite")]
     end
 
-    User -->|"HTTPS"| Nginx
-    LE -->|"TLS cert"| Nginx
-    Nginx -->|"proxy_pass"| App
-    PM2 -->|"manages & restarts"| App
-    Pages -->|"fetch"| API
-    API -->|"reads / writes"| SQLite
-    API -->|"screenshot analysis"| Gemini
-    API -->|"exchange rates"| FX
-    API -->|"weekly reminders"| Ntfy
-    API -->|"backup vaulted.db"| Drive
+    subgraph Ext["External Services"]
+        Gemini["✦ Gemini AI"]
+        FX["💱 FX Rates"]
+        Ntfy["🔔 ntfy.sh"]
+        Backup["☁ GH Backup"]
+    end
+
+    You -->|"merge PR"| main
+    You -->|"HTTPS"| Nginx
+    main --> Actions
+    Actions -->|"SSH deploy"| Nginx
+    Nginx --> Next
+    Next <-->|"read / write"| DB
+    Cron <-->|"read / write"| DB
+    Next -->|"screenshot"| Gemini
+    Next -->|"rates"| FX
+    Cron -->|"6am"| FX
+    Cron -->|"Sunday 9am"| Ntfy
+    Cron -->|"Monday 2am"| Backup
 ```
 
 ---
@@ -49,10 +52,24 @@ User
          ├─ Page render  → React component
          └─ API call     → API route handler
                               └─ SQLite (local DB)
-                              └─ Gemini API (AI)
-                              └─ frankfurter.app (FX)
+                              └─ Gemini API (AI vision)
+                              └─ frankfurter.app (FX rates)
                               └─ ntfy.sh (notifications)
-                              └─ Google Drive (backups)
+```
+
+---
+
+## Deploy Flow (CI/CD)
+
+```
+Developer merges PR to main
+ └─ GitHub Actions triggers
+     └─ SSH into 168.138.8.134
+         └─ git pull origin main
+         └─ npm install
+         └─ npm run build
+         └─ pm2 restart vaulted vaulted-cron
+             └─ App live at https://vaulted.gdevsingh.com
 ```
 
 ---
@@ -64,10 +81,21 @@ User opens /update
  └─ Takes screenshot of bank app
      └─ Uploads screenshot → /api/gemini
          └─ Gemini 2.5 Flash reads balance from image
-             └─ Returns extracted amount
+             └─ Returns extracted amount + confidence
                  └─ User confirms → POST /api/snapshots
                      └─ Balance saved to SQLite
                          └─ Dashboard + trends update
+```
+
+---
+
+## Cron Jobs
+
+```
+vaulted-cron (PM2 process)
+ ├─ Sunday 9:00 AM AEST   → POST ntfy.sh ("X accounts to sync")
+ ├─ Daily  6:00 AM AEST   → GET frankfurter.app → cache USD/AUD in DB
+ └─ Monday 2:00 AM AEST   → Upload vaulted.db → GitHub private repo
 ```
 
 ---
@@ -99,5 +127,7 @@ User visits any page
 | Process manager | PM2 (auto-restart + startup on reboot) |
 | Web server | Nginx (reverse proxy + SSL termination) |
 | SSL | Let's Encrypt (auto-renews every 90 days) |
-| Database | SQLite — single file at `/home/ubuntu/vaulted/vaulted.db` |
+| Database | SQLite — `/home/ubuntu/vaulted/vaulted.db` |
+| CI/CD | GitHub Actions — auto-deploys on merge to main |
+| Backups | GitHub private repo — weekly Monday upload |
 | Cost | $0/month |

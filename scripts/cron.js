@@ -64,14 +64,24 @@ async function sendWeeklyNotification() {
 }
 
 // ─── FX refresh ───────────────────────────────────────────────────────────────
+// Calls frankfurter.app directly — avoids dependency on Next.js being up at 6am
 async function refreshFxRate() {
   console.log("[cron] Refreshing FX rate...");
   try {
-    const url  = await getAppUrl();
-    const res  = await fetch(`${url}/api/fx?from=USD&to=AUD`);
+    const res  = await fetch("https://api.frankfurter.app/latest?from=USD&to=AUD");
+    if (!res.ok) throw new Error(`frankfurter returned ${res.status}`);
     const data = await res.json();
-    console.log(`[cron] ✓ 1 USD = ${data.rate} AUD`);
-    await recordRun("fx", true, `1 USD = ${data.rate} AUD`);
+    const rate = data.rates?.AUD;
+    if (!rate) throw new Error("No AUD rate in response");
+
+    // Cache in DB so the app API serves it
+    await db.execute({
+      sql: "INSERT OR REPLACE INTO settings (key, value) VALUES (?,?), (?,?)",
+      args: ["fx_USD_AUD", String(rate), "fx_USD_AUD_ts", new Date().toISOString()],
+    });
+
+    console.log(`[cron] ✓ 1 USD = ${rate} AUD (cached in DB)`);
+    await recordRun("fx", true, `1 USD = ${rate} AUD`);
   } catch (err) {
     console.error("[cron] FX error:", err.message);
     await recordRun("fx", false, err.message);
