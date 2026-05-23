@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import TopBar from "@/components/top-bar";
 import BottomNav from "@/components/nav";
 import { useTheme } from "@/app/layout";
@@ -562,6 +563,7 @@ function TabBar({ active, onChange }) {
 
 // ─── Admin page ───────────────────────────────────────────────────────────────
 export default function AdminPage() {
+  const router = useRouter();
   const [tab, setTab]           = useState("accounts");
   const [accounts, setAccounts] = useState([]);
   const [settings, setSettings] = useState({});
@@ -606,6 +608,7 @@ export default function AdminPage() {
   const handleDelete = async (id) => {
     await deleteAccount(id);
     setAccounts(a => a.filter(acc => acc.id !== id));
+    router.refresh(); // invalidates Next.js cache so other pages re-fetch fresh data
   };
 
   const handleSaveSettings = async (patch) => {

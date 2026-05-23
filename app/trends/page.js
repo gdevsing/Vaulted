@@ -95,7 +95,7 @@ export default function TrendsPage() {
   const [loading, setLoading]       = useState(true);
 
   useEffect(() => {
-    fetch("/api/networth?history")
+    fetch("/api/networth?history", { cache: "no-store" })
       .then(r => r.json())
       .then(h => setRawHistory(h.history || []))
       .finally(() => setLoading(false));

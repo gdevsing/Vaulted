@@ -179,8 +179,8 @@ export default function MilestonesPage() {
 
   useEffect(() => {
     Promise.all([
-      fetch("/api/networth").then(r => r.json()),
-      fetch("/api/networth?history").then(r => r.json()),
+      fetch("/api/networth", { cache: "no-store" }).then(r => r.json()),
+      fetch("/api/networth?history", { cache: "no-store" }).then(r => r.json()),
     ]).then(([n, h]) => {
       setCurrent(Number(n.networth?.total || 0));
       setHistory((h.history || []).map(row => ({ value: Number(row.total) })));
