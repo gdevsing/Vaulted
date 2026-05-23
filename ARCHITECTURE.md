@@ -5,6 +5,12 @@
 ```mermaid
 graph TD
     User["👤 User\nBrowser / Phone"]
+    Dev["👨‍💻 Developer\nPush to main"]
+
+    subgraph GitHub["GitHub"]
+        Repo["gdevsing/Vaulted\nSource code"]
+        Actions["GitHub Actions\nCI/CD Pipeline"]
+    end
 
     subgraph Oracle["Oracle Cloud — Always Free VPS (168.138.8.134)"]
         LE["🔒 Let's Encrypt\nSSL Certificate"]
@@ -16,6 +22,7 @@ graph TD
             API["API Routes\n/api/accounts /api/networth\n/api/settings /api/login\n/api/gemini /api/fx /api/notify"]
         end
 
+        Cron["vaulted-cron\nNode-cron scheduler"]
         SQLite["🗄 SQLite\nvaulted.db"]
     end
 
@@ -23,19 +30,26 @@ graph TD
         Gemini["✦ Google Gemini 2.5 Flash\nAI screenshot → balance"]
         FX["💱 frankfurter.app\nUSD → AUD rates (cached 24h)"]
         Ntfy["🔔 ntfy.sh\nPush notifications"]
-        Drive["☁ Google Drive\nWeekly DB backup (Mondays)"]
+        GHBackup["☁ GitHub Private Repo\nWeekly DB backup (Mondays)"]
     end
+
+    Dev -->|"merge PR"| Repo
+    Repo -->|"triggers"| Actions
+    Actions -->|"SSH deploy"| PM2
 
     User -->|"HTTPS"| Nginx
     LE -->|"TLS cert"| Nginx
     Nginx -->|"proxy_pass"| App
     PM2 -->|"manages & restarts"| App
+    PM2 -->|"manages & restarts"| Cron
     Pages -->|"fetch"| API
     API -->|"reads / writes"| SQLite
+    Cron -->|"reads / writes"| SQLite
     API -->|"screenshot analysis"| Gemini
+    Cron -->|"exchange rates direct"| FX
     API -->|"exchange rates"| FX
-    API -->|"weekly reminders"| Ntfy
-    API -->|"backup vaulted.db"| Drive
+    Cron -->|"weekly reminders"| Ntfy
+    Cron -->|"backup vaulted.db"| GHBackup
 ```
 
 ---
@@ -49,10 +63,24 @@ User
          ├─ Page render  → React component
          └─ API call     → API route handler
                               └─ SQLite (local DB)
-                              └─ Gemini API (AI)
-                              └─ frankfurter.app (FX)
+                              └─ Gemini API (AI vision)
+                              └─ frankfurter.app (FX rates)
                               └─ ntfy.sh (notifications)
-                              └─ Google Drive (backups)
+```
+
+---
+
+## Deploy Flow (CI/CD)
+
+```
+Developer merges PR to main
+ └─ GitHub Actions triggers
+     └─ SSH into 168.138.8.134
+         └─ git pull origin main
+         └─ npm install
+         └─ npm run build
+         └─ pm2 restart vaulted vaulted-cron
+             └─ App live at https://vaulted.gdevsingh.com
 ```
 
 ---
@@ -64,10 +92,21 @@ User opens /update
  └─ Takes screenshot of bank app
      └─ Uploads screenshot → /api/gemini
          └─ Gemini 2.5 Flash reads balance from image
-             └─ Returns extracted amount
+             └─ Returns extracted amount + confidence
                  └─ User confirms → POST /api/snapshots
                      └─ Balance saved to SQLite
                          └─ Dashboard + trends update
+```
+
+---
+
+## Cron Jobs
+
+```
+vaulted-cron (PM2 process)
+ ├─ Sunday 9:00 AM AEST   → POST ntfy.sh ("X accounts to sync")
+ ├─ Daily  6:00 AM AEST   → GET frankfurter.app → cache USD/AUD in DB
+ └─ Monday 2:00 AM AEST   → Upload vaulted.db → GitHub private repo
 ```
 
 ---
@@ -99,5 +138,7 @@ User visits any page
 | Process manager | PM2 (auto-restart + startup on reboot) |
 | Web server | Nginx (reverse proxy + SSL termination) |
 | SSL | Let's Encrypt (auto-renews every 90 days) |
-| Database | SQLite — single file at `/home/ubuntu/vaulted/vaulted.db` |
+| Database | SQLite — `/home/ubuntu/vaulted/vaulted.db` |
+| CI/CD | GitHub Actions — auto-deploys on merge to main |
+| Backups | GitHub private repo — weekly Monday upload |
 | Cost | $0/month |
