@@ -12,7 +12,7 @@ Every merge to main triggers GitHub Actions which automatically:
 
 Watch the deploy at: **github.com/gdevsing/Vaulted → Actions tab**
 
-> ⚠️ Requires 3 GitHub secrets to be set — see TODO.md Stage 8 if not yet configured.
+> ✅ CI/CD is active. Secrets are configured. Every merge to main auto-deploys.
 
 ---
 

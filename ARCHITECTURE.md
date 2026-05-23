@@ -129,5 +129,5 @@ User visits any page
 | SSL | Let's Encrypt (auto-renews every 90 days) |
 | Database | SQLite — `/home/ubuntu/vaulted/vaulted.db` |
 | CI/CD | GitHub Actions — auto-deploys on merge to main |
-| Backups | GitHub private repo — weekly Monday upload |
+| Backups | GitHub private repo — Monday 2am cron upload |
 | Cost | $0/month |

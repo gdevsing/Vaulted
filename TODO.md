@@ -20,6 +20,14 @@ Nothing pending — all features shipped. ✓
 - [x] Gemini API key set in Admin → Credentials → Gemini AI
 - [x] No Change tab on update page
 - [x] Update any account any time toggle
+- [x] CI/CD GitHub Actions — auto-deploys on merge to main
+- [x] Rotating finance quotes on login with fade-in animation
+- [x] MIT licence + © 2026 Gurdev Singh footer
+- [x] Stale state fix after account deletion (cache: no-store + router.refresh)
+- [x] USD balance colour fix (readable in dark mode)
+- [x] FX cron calls frankfurter.app directly (fixed 6am failure)
+- [x] Balance save error handling (no more fake SAVED ✓)
+- [x] Notification privacy fix (net worth removed from push message)
 
 ---
 
