@@ -1,6 +1,14 @@
 # Vaulted
 
-Personal net worth tracker for a household — built with Next.js, SQLite, and Gemini AI. Supports Husband, Wife, and Joint account ownership.
+Most finance apps want access to your bank. Vaulted doesn't. You take a screenshot, AI reads the balance, your net worth updates. Everything runs on your own server and costs nothing to keep running.
+
+> 📹 **Demo video coming soon** — drop a screen recording of the live app here
+
+---
+
+Built for a household of two. Tracks cash, shares, crypto and super across any number of accounts. Supports AUD and USD. Sends a weekly push notification to your phone when it's time to sync.
+
+Data never leaves your server. No subscriptions. No third party access to your accounts. $0/month on Oracle Cloud Always Free.
 
 ## Use cases
 
