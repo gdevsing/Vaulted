@@ -101,7 +101,7 @@ export default function DashboardPage() {
       // Override balance with live AUD conversion for non-AUD accounts
       const enriched = accs.map(a =>
         a.currency !== "AUD" && a.native_balance != null
-          ? { ...a, balance: Math.round(a.native_balance * usdRate * 100) / 100 }
+          ? { ...a, balance: Math.round(a.native_balance * usdRate * 100) / 100, liveRate: usdRate }
           : a
       );
 

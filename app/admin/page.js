@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import TopBar from "@/components/top-bar";
 import BottomNav from "@/components/nav";
 import { useTheme } from "@/app/layout";
-import { fetchAccounts, createAccount, updateAccount, deleteAccount, fetchSettings, updateSettings, sendTestNotification, getNotifyStatus } from "@/lib/api";
+import { fetchAccounts, createAccount, updateAccount, deleteAccount, fetchSettings, updateSettings, sendTestNotification, getNotifyStatus, fetchFxRate } from "@/lib/api";
 import { fmt, assetLabel, ownerLabel } from "@/lib/utils";
 import { ASSETS } from "@/lib/tokens";
 
@@ -338,9 +338,20 @@ function AccountRow({ account, onEdit, onDelete }) {
         <div style={{ fontFamily:"var(--font-mono)", fontSize:9, color:"var(--ink2)", letterSpacing:"0.06em" }}>
           {account.institution} · {ownerLabel(account.owner)} · {account.currency} · {account.frequency}
         </div>
+        {account.currency !== "AUD" && account.native_balance != null && (
+          <div style={{ fontFamily:"var(--font-mono)", fontSize:8, color:"var(--ink3)", marginTop:2 }}>
+            {account.currency} {fmt(account.native_balance)}
+            {account.liveRate && <span style={{ marginLeft:4 }}>· 1 {account.currency} = {account.liveRate.toFixed(4)} AUD</span>}
+          </div>
+        )}
       </div>
-      <div style={{ fontFamily:"var(--font-display)", fontSize:14, color:"var(--ink)", flexShrink:0 }}>
-        {fmt(account.balance || 0)}
+      <div style={{ textAlign:"right", flexShrink:0 }}>
+        <div style={{ fontFamily:"var(--font-display)", fontSize:14, color:"var(--ink)" }}>
+          {fmt(account.balance || 0)}
+        </div>
+        {account.currency !== "AUD" && (
+          <div style={{ fontFamily:"var(--font-mono)", fontSize:8, color:"var(--ink3)", marginTop:1 }}>AUD</div>
+        )}
       </div>
       <div style={{ display:"flex", gap:6, flexShrink:0 }}>
         <button onClick={() => onEdit(account)} className="btn-press"
@@ -563,11 +574,17 @@ export default function AdminPage() {
     (async () => {
       setLoading(true);
       try {
-        const [accs, setts] = await Promise.all([
+        const [accs, setts, { rate: usdRate }] = await Promise.all([
           fetchAccounts(),
           fetchSettings(),
+          fetchFxRate("USD", "AUD"),
         ]);
-        setAccounts(accs);
+        const enriched = accs.map(a =>
+          a.currency !== "AUD" && a.native_balance != null
+            ? { ...a, balance: Math.round(a.native_balance * usdRate * 100) / 100, liveRate: usdRate }
+            : a
+        );
+        setAccounts(enriched);
         setSettings(setts);
       } catch (e) { console.error(e); }
       setLoading(false);

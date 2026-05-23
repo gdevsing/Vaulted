@@ -405,9 +405,14 @@ function AccountUpdateCard({ account, onSave, onSkip }) {
             background:"rgba(255,210,74,0.06)", border:"1px solid rgba(255,210,74,0.2)",
             borderRadius:"2px 8px 8px 2px",
             fontFamily:"var(--font-mono)", fontSize:9, color:"var(--ink2)",
-            display:"flex", justifyContent:"space-between",
+            display:"flex", justifyContent:"space-between", alignItems:"center",
           }}>
             <span>{account.currency} {fmt(activeBalance)}</span>
+            {fxRate && (
+              <span style={{ fontSize:8, color:"var(--ink3)" }}>
+                1 {account.currency} = {fxRate.toFixed(4)} AUD
+              </span>
+            )}
             <span style={{ color:"var(--gold)" }}>
               {fxRate ? `≈ AUD ${fmt(audBalance)}` : "fetching rate..."}
             </span>
