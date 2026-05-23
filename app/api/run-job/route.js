@@ -55,11 +55,6 @@ async function runNotify() {
     return { ok: false, message: msg };
   }
 
-  const { rows: nw } = await db.execute(
-    "SELECT SUM(balance) as total FROM accounts WHERE active = 1"
-  );
-  const total = nw[0]?.total || 0;
-
   const { rows: accounts } = await db.execute(
     "SELECT name, frequency, updated FROM accounts WHERE active = 1"
   );
@@ -68,11 +63,10 @@ async function runNotify() {
     return days >= ({ weekly: 8, fortnightly: 16, monthly: 33 }[a.frequency] || 33);
   });
 
-  const totalStr = "$" + Math.round(total).toLocaleString("en-AU");
-  const dueStr   = due.length > 0
+  const dueStr  = due.length > 0
     ? `${due.length} account${due.length > 1 ? "s" : ""} to update`
     : "All accounts up to date";
-  const message  = `Net worth: ${totalStr} · ${dueStr}`;
+  const message = dueStr;
   const title    = "Time to sync your vault";
 
   const headers = {

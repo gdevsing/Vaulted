@@ -23,7 +23,11 @@ export async function GET(request) {
       const { rows } = await db.execute(`
         SELECT
           strftime('%Y-%W', s.created_at) as week,
-          SUM(s.balance) as total
+          SUM(s.balance) as total,
+          SUM(CASE WHEN a.asset = 'cash'   THEN s.balance ELSE 0 END) as cash,
+          SUM(CASE WHEN a.asset = 'shares' THEN s.balance ELSE 0 END) as shares,
+          SUM(CASE WHEN a.asset = 'crypto' THEN s.balance ELSE 0 END) as crypto,
+          SUM(CASE WHEN a.asset = 'super'  THEN s.balance ELSE 0 END) as super
         FROM snapshots s
         JOIN accounts a ON a.id = s.account_id
         WHERE a.active = 1 ${ownerClause}
