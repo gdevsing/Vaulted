@@ -2,7 +2,7 @@
 
 import { useTheme } from "@/app/layout";
 import { ASSETS } from "@/lib/tokens";
-import { fmt, fmtUSD, daysAgo } from "@/lib/utils";
+import { fmt, daysAgo } from "@/lib/utils";
 
 export default function AccountCard({ account, delay = 0 }) {
   const { theme } = useTheme();
@@ -69,9 +69,9 @@ export default function AccountCard({ account, delay = 0 }) {
           {account.institution} · {daysAgo(account.updated)}
           {account.overdue && <span style={{ color: "var(--negative)", marginLeft: 6 }}>OVERDUE</span>}
         </div>
-        {account.nativeBalance && (
+        {account.currency !== "AUD" && account.native_balance != null && (
           <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--ink2)", marginTop: 2 }}>
-            {fmtUSD(account.nativeBalance)}
+            {account.currency} {fmt(account.native_balance)}
           </div>
         )}
       </div>
@@ -95,7 +95,7 @@ export default function AccountCard({ account, delay = 0 }) {
           textTransform: "uppercase",
           marginTop: 3,
         }}>
-          {account.currency}
+          AUD
         </div>
       </div>
     </div>

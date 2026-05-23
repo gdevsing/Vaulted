@@ -50,12 +50,11 @@ export async function POST(request) {
       args: [balance, account_id],
     });
 
-    // Also update native_balance if USD account
+    // Also update native_balance for non-AUD accounts (balance is always AUD, native is original currency)
     if (fx_rate) {
-      const audBalance = balance; // balance is always stored in AUD
       await db.execute({
         sql: "UPDATE accounts SET native_balance = ? WHERE id = ?",
-        args: [Math.round(balance * fx_rate * 100) / 100, account_id],
+        args: [Math.round((balance / fx_rate) * 100) / 100, account_id],
       });
     }
 
