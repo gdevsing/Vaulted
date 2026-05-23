@@ -16,7 +16,7 @@ Nothing pending — all features shipped. ✓
 - [x] Logout button
 - [x] app_password set in Admin → Credentials
 - [x] app_url set to https://vaulted.gdevsingh.com
-- [x] Google Drive weekly backup configured
+- [x] GitHub private repo backup configured (switched from Google Drive)
 - [x] Gemini API key set in Admin → Credentials → Gemini AI
 - [x] No Change tab on update page
 - [x] Update any account any time toggle
@@ -35,16 +35,8 @@ cd /home/ubuntu/vaulted && git pull origin main && npm run build && pm2 reload a
 
 ---
 
-## Stage 8 — CI/CD Auto-Deploy
+## Stage 8 — CI/CD Auto-Deploy ✓
 
-The GitHub Actions workflow is already created (`.github/workflows/deploy.yml`).
-It triggers automatically on every merge to main — no more manual SSH deploys.
-
-You need to add 3 secrets in GitHub to activate it:
-
-- [ ] Go to **github.com/gdevsing/Vaulted → Settings → Secrets and variables → Actions**
-- [ ] Add secret: `VPS_HOST` → `168.138.8.134`
-- [ ] Add secret: `VPS_USER` → `ubuntu`
-- [ ] Add secret: `SSH_PRIVATE_KEY` → contents of your `.key` file in `~/Documents/Vaulted/oracle cloud keys/`
-- [ ] Test by merging any PR and watching the **Actions** tab on GitHub
-- [ ] Verify both processes still running after deploy: `pm2 status`
+- [x] Workflow created at `.github/workflows/deploy.yml`
+- [x] `VPS_HOST`, `VPS_USER`, `SSH_PRIVATE_KEY` secrets added to GitHub
+- [x] Auto-deploys on every merge to main — no more manual SSH deploys
