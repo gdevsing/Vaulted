@@ -1,10 +1,77 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Logo from "@/components/logo";
 import { ThemeToggle } from "@/components/ui/primitives";
 import { useTheme } from "@/app/layout";
+
+
+const QUOTES = [
+  { text: "Compound interest is the eighth wonder of the world.", author: "Einstein" },
+  { text: "The stock market transfers money from the impatient to the patient.", author: "Buffett" },
+  { text: "It's not about how much you make. It's about how much you keep.", author: "" },
+  { text: "Time in the market beats timing the market.", author: "" },
+  { text: "Budget: a mathematical confirmation of your suspicions.", author: "" },
+  { text: "Money is a terrible master but an excellent servant.", author: "Barnum" },
+  { text: "An investment in knowledge pays the best interest.", author: "Franklin" },
+  { text: "Do not save what is left after spending. Spend what is left after saving.", author: "Buffett" },
+  { text: "The goal is not to be rich. The goal is to be free.", author: "" },
+  { text: "Wealth is not about having a lot of money. It's about having a lot of options.", author: "Rock" },
+  { text: "Every dollar you spend is a vote for the kind of world you want.", author: "" },
+  { text: "Financial freedom is available to those who learn about it and work for it.", author: "Kiyosaki" },
+];
+
+function useRandomQuote() {
+  const [quote] = useState(() => QUOTES[Math.floor(Math.random() * QUOTES.length)]);
+  return quote;
+}
+
+function QuoteFooter() {
+  const quote = useRandomQuote();
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const t = setTimeout(() => setVisible(true), 600);
+    return () => clearTimeout(t);
+  }, []);
+
+  return (
+    <div style={{
+      display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+      opacity: visible ? 1 : 0,
+      transform: visible ? "translateY(0)" : "translateY(6px)",
+      transition: "opacity 0.8s ease, transform 0.8s ease",
+    }}>
+      <div style={{
+        fontFamily: "var(--font-serif)",
+        fontStyle: "italic",
+        fontSize: 12,
+        color: "var(--ink2)",
+        textAlign: "center",
+        maxWidth: 280,
+        lineHeight: 1.6,
+        fontWeight: 300,
+      }}>
+        "{quote.text}"
+        {quote.author && (
+          <span style={{ display: "block", fontStyle: "normal", fontSize: 10, marginTop: 4, color: "var(--ink3)", letterSpacing: "0.06em" }}>
+            — {quote.author}
+          </span>
+        )}
+      </div>
+      <div style={{
+        fontFamily: "var(--font-mono)",
+        fontSize: 8,
+        letterSpacing: "0.1em",
+        color: "var(--ink3)",
+        marginTop: 4,
+      }}>
+        © 2026 Gurdev Singh. MIT Licence.
+      </div>
+    </div>
+  );
+}
 
 export default function LoginPage() {
   const { theme, toggleTheme } = useTheme();
@@ -135,15 +202,7 @@ export default function LoginPage() {
       </div>
 
       {/* Footer */}
-      <div className="fade-up fade-up-3" style={{
-        fontFamily: "var(--font-mono)",
-        fontSize: 9,
-        letterSpacing: "0.12em",
-        color: "var(--ink3)",
-        textTransform: "uppercase",
-      }}>
-        HTTPS · PERSONAL · ENCRYPTED
-      </div>
+      <QuoteFooter />
     </div>
   );
 }

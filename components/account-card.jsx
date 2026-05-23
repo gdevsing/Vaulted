@@ -70,10 +70,10 @@ export default function AccountCard({ account, delay = 0 }) {
           {account.overdue && <span style={{ color: "var(--negative)", marginLeft: 6 }}>OVERDUE</span>}
         </div>
         {account.currency !== "AUD" && account.native_balance != null && (
-          <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--ink2)", marginTop: 2 }}>
+          <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--ink)", marginTop: 2 }}>
             {account.currency} {fmt(account.native_balance)}
             {account.liveRate && (
-              <span style={{ marginLeft: 5, fontSize: 8, color: "var(--ink3)" }}>
+              <span style={{ marginLeft: 5, fontSize: 8, color: "var(--ink2)" }}>
                 @ {account.liveRate.toFixed(4)}
               </span>
             )}
