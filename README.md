@@ -6,6 +6,27 @@ Most finance apps want access to your bank. Vaulted doesn't. You take a screensh
 
 ---
 
+## Screenshots
+
+<table>
+  <tr>
+    <td align="center"><img src="screenshots/01-login.jpg" width="180"/><br/><sub>Login</sub></td>
+    <td align="center"><img src="screenshots/02-dashboard.jpg" width="180"/><br/><sub>Dashboard</sub></td>
+    <td align="center"><img src="screenshots/03-dashboard-accounts.jpg" width="180"/><br/><sub>Accounts</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="screenshots/04-sync-manual.jpg" width="180"/><br/><sub>Manual Sync</sub></td>
+    <td align="center"><img src="screenshots/05-sync-gemini.jpg" width="180"/><br/><sub>Gemini AI Extraction</sub></td>
+    <td align="center"><img src="screenshots/06-sync-usd.jpg" width="180"/><br/><sub>USD Conversion</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="screenshots/07-trends.jpg" width="180"/><br/><sub>Trends</sub></td>
+    <td align="center"><img src="screenshots/08-milestones.jpg" width="180"/><br/><sub>Milestones</sub></td>
+    <td align="center"><img src="screenshots/09-admin.jpg" width="180"/><br/><sub>Admin</sub></td>
+  </tr>
+</table>
+
+
 Built for a household of two. Tracks cash, shares, crypto and super across any number of accounts. Supports AUD and USD. Sends a weekly push notification to your phone when it's time to sync.
 
 Data never leaves your server. No subscriptions. No third party access to your accounts. $0/month on Oracle Cloud Always Free.
