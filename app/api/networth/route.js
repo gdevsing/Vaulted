@@ -21,16 +21,29 @@ export async function GET(request) {
         ? `AND a.owner = '${owner}'` : "";
 
       const { rows } = await db.execute(`
+        WITH latest AS (
+          SELECT
+            s.account_id,
+            s.balance,
+            a.asset,
+            strftime('%Y-%W', s.created_at) as week,
+            ROW_NUMBER() OVER (
+              PARTITION BY s.account_id, strftime('%Y-%W', s.created_at)
+              ORDER BY s.created_at DESC
+            ) as rn
+          FROM snapshots s
+          JOIN accounts a ON a.id = s.account_id
+          WHERE a.active = 1 ${ownerClause}
+        )
         SELECT
-          strftime('%Y-%W', s.created_at) as week,
-          SUM(s.balance) as total,
-          SUM(CASE WHEN a.asset = 'cash'   THEN s.balance ELSE 0 END) as cash,
-          SUM(CASE WHEN a.asset = 'shares' THEN s.balance ELSE 0 END) as shares,
-          SUM(CASE WHEN a.asset = 'crypto' THEN s.balance ELSE 0 END) as crypto,
-          SUM(CASE WHEN a.asset = 'super'  THEN s.balance ELSE 0 END) as super
-        FROM snapshots s
-        JOIN accounts a ON a.id = s.account_id
-        WHERE a.active = 1 ${ownerClause}
+          week,
+          SUM(balance)                                              as total,
+          SUM(CASE WHEN asset = 'cash'   THEN balance ELSE 0 END)  as cash,
+          SUM(CASE WHEN asset = 'shares' THEN balance ELSE 0 END)  as shares,
+          SUM(CASE WHEN asset = 'crypto' THEN balance ELSE 0 END)  as crypto,
+          SUM(CASE WHEN asset = 'super'  THEN balance ELSE 0 END)  as super
+        FROM latest
+        WHERE rn = 1
         GROUP BY week
         ORDER BY week ASC
         LIMIT 52
