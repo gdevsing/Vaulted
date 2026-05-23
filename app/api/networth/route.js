@@ -51,22 +51,37 @@ export async function GET(request) {
       return NextResponse.json({ history: rows });
     }
 
-    // Current totals
-    const ownerClause = owner && ["H","W","J"].includes(owner)
-      ? `WHERE owner = '${owner}' AND active = 1`
-      : "WHERE active = 1";
+    // Current totals — convert non-AUD accounts using today's cached FX rate
+    const ownerFilter = owner && ["H","W","J"].includes(owner);
+    const { rows: accounts } = await db.execute({
+      sql: `SELECT balance, native_balance, currency, asset FROM accounts WHERE active = 1${ownerFilter ? " AND owner = ?" : ""}`,
+      args: ownerFilter ? [owner] : [],
+    });
 
-    const { rows: totals } = await db.execute(`
-      SELECT
-        SUM(balance) as total,
-        SUM(CASE WHEN asset = 'cash'   THEN balance ELSE 0 END) as cash,
-        SUM(CASE WHEN asset = 'shares' THEN balance ELSE 0 END) as shares,
-        SUM(CASE WHEN asset = 'crypto' THEN balance ELSE 0 END) as crypto,
-        SUM(CASE WHEN asset = 'super'  THEN balance ELSE 0 END) as super
-      FROM accounts ${ownerClause}
-    `);
+    // Pull every cached FX rate from settings (keys like fx_USD_AUD)
+    const { rows: fxRows } = await db.execute(
+      "SELECT key, value FROM settings WHERE key LIKE 'fx_%' AND key NOT LIKE '%_ts'"
+    );
+    const fxRates = {};
+    for (const r of fxRows) {
+      const parts = r.key.split("_"); // ["fx", "USD", "AUD"]
+      if (parts.length === 3) fxRates[parts[1]] = parseFloat(r.value);
+    }
 
-    return NextResponse.json({ networth: totals[0] });
+    let total = 0, cash = 0, shares = 0, crypto = 0, superAmt = 0;
+    for (const a of accounts) {
+      // Use native_balance * live rate if available, otherwise fall back to stored AUD balance
+      const aud = (a.currency !== "AUD" && a.native_balance != null && fxRates[a.currency])
+        ? a.native_balance * fxRates[a.currency]
+        : (a.balance || 0);
+      total  += aud;
+      if (a.asset === "cash")   cash     += aud;
+      if (a.asset === "shares") shares   += aud;
+      if (a.asset === "crypto") crypto   += aud;
+      if (a.asset === "super")  superAmt += aud;
+    }
+
+    return NextResponse.json({ networth: { total, cash, shares, crypto, super: superAmt } });
   } catch (err) {
     console.error("GET /api/networth:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });

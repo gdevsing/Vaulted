@@ -7,7 +7,7 @@ import AccountCard from "@/components/account-card";
 import DonutChart from "@/components/charts/donut";
 import Sparkline from "@/components/charts/sparkline";
 import { useTheme } from "@/app/layout";
-import { fetchAccounts, fetchNetWorth, fetchNetWorthHistory } from "@/lib/api";
+import { fetchAccounts, fetchNetWorth, fetchNetWorthHistory, fetchFxRate } from "@/lib/api";
 import { fmt, fmtShort, fmtPct } from "@/lib/utils";
 import { ASSETS } from "@/lib/tokens";
 
@@ -91,12 +91,21 @@ export default function DashboardPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [accs, nw, hist] = await Promise.all([
+      const [accs, nw, hist, { rate: usdRate }] = await Promise.all([
         fetchAccounts(owner),
         fetchNetWorth(owner),
         fetchNetWorthHistory(owner),
+        fetchFxRate("USD", "AUD"),
       ]);
-      setAccounts(accs);
+
+      // Override balance with live AUD conversion for non-AUD accounts
+      const enriched = accs.map(a =>
+        a.currency !== "AUD" && a.native_balance != null
+          ? { ...a, balance: Math.round(a.native_balance * usdRate * 100) / 100, liveRate: usdRate }
+          : a
+      );
+
+      setAccounts(enriched);
       setNetworth(nw);
       setHistory(hist);
     } catch (e) {
