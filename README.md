@@ -2,6 +2,29 @@
 
 Personal net worth tracker for a household — built with Next.js, SQLite, and Gemini AI. Supports Husband, Wife, and Joint account ownership.
 
+## Use cases
+
+**Weekly balance update**
+Open the app, tap through each account due for an update. Point the camera at a balance screen — Gemini AI reads the number automatically. Or type it manually. Confirm, move on. Takes under two minutes for ten accounts.
+
+**Net worth at a glance**
+The dashboard shows total household net worth, broken down by asset class (cash, shares, crypto, super) and by owner (husband, wife, joint). AUD-equivalent totals are calculated live using cached FX rates for USD accounts.
+
+**Tracking over time**
+Trends page shows net worth history and per-account sparklines. Every time a balance is saved, a snapshot is recorded — so history builds up automatically over weeks and months.
+
+**Milestone goals**
+Set a net worth target (e.g. $500k) and watch the progress bar fill. Milestones page shows how far along you are and projects when you'll hit it based on recent growth rate.
+
+**Overdue account alerts**
+Each account has a configured update frequency (weekly, fortnightly, monthly). The app tracks when it was last updated and highlights anything overdue. On the configured day (default Sunday), a push notification fires to your phone via ntfy.sh reminding you to sync.
+
+**Multi-currency**
+USD accounts (e.g. Stake Wall St) store a native USD balance and an AUD-equivalent balance. The FX rate is fetched once daily from frankfurter.app and cached in the DB so the dashboard always shows consistent AUD totals.
+
+**Admin and credentials**
+All API keys (Gemini, ntfy, GitHub) are stored in the DB and editable via the Admin panel. No environment files needed. Cron job status (last run, result) is visible in Admin. Any job can be triggered manually with a Run Now button.
+
 ## Stack
 
 | Layer | Tech |
@@ -12,6 +35,7 @@ Personal net worth tracker for a household — built with Next.js, SQLite, and G
 | AI Vision | Google Gemini 2.5 Flash |
 | FX Rates | frankfurter.app (cached 24h) |
 | Notifications | ntfy.sh |
+| Backups | GitHub private repo |
 | Hosting | Oracle Cloud Always Free |
 | SSL | Let's Encrypt |
 
@@ -24,7 +48,7 @@ User → Nginx (SSL) → Next.js (:3000) → SQLite
                           ├── Google Gemini (AI vision)
                           ├── frankfurter.app (FX rates)
                           ├── ntfy.sh (notifications)
-                          └── Google Drive (backups)
+                          └── GitHub private repo (backups)
 ```
 
 ## Getting started
@@ -80,7 +104,7 @@ lib/
 - [x] SSL via Let's Encrypt
 - [x] Logout button
 - [x] Cron job status panel in Admin
-- [x] Google Drive backup (weekly, single file overwrite)
+- [x] GitHub private repo DB backup (Monday 2am, cron-triggered)
 - [x] Joint account owner type
 - [x] Desktop font scaling
 - [x] Gemini AI screenshot agent
