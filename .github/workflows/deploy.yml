@@ -1,0 +1,26 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to Oracle Cloud VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host:     ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key:      ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /home/ubuntu/vaulted
+            git pull origin main
+            npm install --production
+            npm run build
+            pm2 restart vaulted vaulted-cron
+            pm2 save
+            echo "✅ Deploy complete at $(date)"
