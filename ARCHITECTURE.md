@@ -11,7 +11,7 @@ flowchart LR
         Actions["Actions"]
     end
 
-    subgraph VPS["Oracle VPS · vaulted.gdevsingh.com"]
+    subgraph VPS["Oracle VPS · your-domain.com"]
         Nginx["Nginx
 :443"]
         Next["Next.js
@@ -64,12 +64,12 @@ User
 ```
 Developer merges PR to main
  └─ GitHub Actions triggers
-     └─ SSH into 168.138.8.134
+     └─ SSH into your-vps-ip
          └─ git pull origin main
          └─ npm install
          └─ npm run build
          └─ pm2 restart vaulted vaulted-cron
-             └─ App live at https://vaulted.gdevsingh.com
+             └─ App live at https://your-domain.com
 ```
 
 ---
