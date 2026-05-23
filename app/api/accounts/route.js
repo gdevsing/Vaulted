@@ -15,11 +15,11 @@ export async function GET(request) {
     await ensureReady();
     const db = getDb();
     const { searchParams } = new URL(request.url);
-    const owner = searchParams.get("owner"); // "H" | "W" | null
+    const owner = searchParams.get("owner"); // "H" | "W" | "J" | null
 
     let sql = "SELECT * FROM accounts WHERE active = 1";
     const args = [];
-    if (owner && ["H","W"].includes(owner)) {
+    if (owner && ["H","W","J"].includes(owner)) {
       sql += " AND owner = ?";
       args.push(owner);
     }
