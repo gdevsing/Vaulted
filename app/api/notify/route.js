@@ -26,14 +26,13 @@ async function buildWeeklySummary(db) {
     return days >= (limits[a.frequency] || 33);
   });
 
-  const totalStr = "$" + Math.round(total).toLocaleString("en-AU");
-  const dueStr   = due.length > 0
+    const dueStr   = due.length > 0
     ? `${due.length} account${due.length > 1 ? "s" : ""} to update`
     : "All accounts up to date";
 
   return {
     title:   "Time to sync your vault",
-    message: `Net worth: ${totalStr} · ${dueStr}`,
+    message: `${dueStr} · Tap to open Vaulted`,
     dueCount: due.length,
     total,
   };
