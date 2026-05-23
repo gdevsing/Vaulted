@@ -17,7 +17,7 @@ export async function GET(request) {
     if (history) {
       // Weekly snapshots aggregated — one row per week per asset
       // For now, return the most recent balance per account grouped by week
-      const ownerClause = owner && ["H","W"].includes(owner)
+      const ownerClause = owner && ["H","W","J"].includes(owner)
         ? `AND a.owner = '${owner}'` : "";
 
       const { rows } = await db.execute(`
@@ -52,7 +52,7 @@ export async function GET(request) {
     }
 
     // Current totals
-    const ownerClause = owner && ["H","W"].includes(owner)
+    const ownerClause = owner && ["H","W","J"].includes(owner)
       ? `WHERE owner = '${owner}' AND active = 1`
       : "WHERE active = 1";
 
