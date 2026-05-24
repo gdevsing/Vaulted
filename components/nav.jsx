@@ -247,16 +247,7 @@ function MobileNav({ onHelpOpen }) {
           </Link>
         );
       })}
-      {/* Help button */}
-      <button onClick={onHelpOpen} style={{
-        display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
-        background: "none", border: "none", cursor: "pointer", padding: "4px 10px",
-      }}>
-        <span style={{ fontSize: 18, color: "var(--ink2)" }}>?</span>
-        <span style={{ fontFamily: "var(--font-mono)", fontSize: 8, letterSpacing: "0.1em", color: "var(--ink2)" }}>
-          HELP
-        </span>
-      </button>
+
     </nav>
   );
 }
