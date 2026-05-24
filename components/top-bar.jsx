@@ -5,7 +5,7 @@ import Logo from "@/components/logo";
 import { ThemeToggle } from "@/components/ui/primitives";
 import { useTheme } from "@/app/layout";
 
-export default function TopBar({ right }) {
+export default function TopBar({ right, onHelpOpen }) {
   const { theme, toggleTheme } = useTheme();
   const router = useRouter();
 
@@ -17,23 +17,25 @@ export default function TopBar({ right }) {
   return (
     <header className="top-bar">
       <Logo size="sm" />
-      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         {right}
+        {onHelpOpen && (
+          <button onClick={onHelpOpen} className="btn-press" style={{
+            background: "none", border: "1px solid var(--border)",
+            borderRadius: "2px 7px 7px 2px", padding: "4px 10px",
+            fontFamily: "var(--font-mono)", fontSize: 9,
+            letterSpacing: "0.1em", color: "var(--ink2)", cursor: "pointer",
+          }}>
+            ?
+          </button>
+        )}
         <ThemeToggle theme={theme} onToggle={toggleTheme} />
-        <button
-          onClick={handleLogout}
-          style={{
-            background: "none",
-            border: "1px solid var(--border)",
-            borderRadius: "2px 7px 7px 2px",
-            padding: "4px 10px",
-            fontFamily: "var(--font-mono)",
-            fontSize: 9,
-            letterSpacing: "0.1em",
-            color: "var(--ink2)",
-            cursor: "pointer",
-          }}
-        >
+        <button onClick={handleLogout} className="btn-press" style={{
+          background: "none", border: "1px solid var(--border)",
+          borderRadius: "2px 7px 7px 2px", padding: "4px 10px",
+          fontFamily: "var(--font-mono)", fontSize: 9,
+          letterSpacing: "0.1em", color: "var(--ink2)", cursor: "pointer",
+        }}>
           LOGOUT
         </button>
       </div>

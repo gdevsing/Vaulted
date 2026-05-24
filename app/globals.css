@@ -205,7 +205,8 @@ body {
   border-top: 1px solid var(--border);
   display: flex;
   justify-content: space-around;
-  padding: 10px 0 max(14px, env(safe-area-inset-bottom));
+  padding: 10px 0;
+  padding-bottom: max(10px, env(safe-area-inset-bottom));
   z-index: 100;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -257,4 +258,61 @@ body {
   width: 6px; height: 6px;
   border-radius: 50%;
   animation: burst 0.7s ease-out both;
+}
+
+/* ─── Sidebar tooltip (shown when collapsed) ── */
+.sidebar-tooltip {
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--surface-solid);
+  border: 1px solid var(--border-strong);
+  border-radius: 2px 7px 7px 2px;
+  padding: 4px 10px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 200;
+}
+
+.sidebar-tooltip::before {
+  content: '';
+  position: absolute;
+  left: -5px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 5px solid transparent;
+  border-right-color: var(--border-strong);
+  border-left: none;
+}
+
+*:hover > .sidebar-tooltip { opacity: 1; }
+
+/* ─── Two-column grid for desktop pages ── */
+@media (min-width: 768px) {
+  .desktop-two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+  .desktop-two-col-wide {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+  .desktop-full-width {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 767px) {
+  .desktop-two-col,
+  .desktop-two-col-wide { display: contents; }
 }
