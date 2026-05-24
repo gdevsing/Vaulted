@@ -60,8 +60,7 @@ const CREDENTIAL_GROUPS = [
     icon: "⊞",
     description: "General app configuration",
     fields: [
-      { key: "app_url",        label: "Internal URL",   secret: false, placeholder: "http://localhost:3000",    help: "Used by cron jobs internally on the VPS. Always keep this as localhost." },
-      { key: "app_public_url", label: "Public URL",     secret: false, placeholder: "https://your-domain.com",    help: "Your public domain. Used in notification click links so tapping the alert opens your app." },
+      { key: "app_public_url", label: "Public URL",     secret: false, placeholder: "https://your-domain.com",    help: "Your app's public domain. Used in notification click links so tapping the alert opens your app directly." },
       { key: "app_password", label: "Login Password", secret: true,  placeholder: "Choose a strong password" },
       { key: "notify_day",   label: "Notify Day",     secret: false, placeholder: "sunday" },
       { key: "ntfy_topic",   label: "ntfy Topic",     secret: false, placeholder: "vaulted-sync" },

@@ -26,10 +26,6 @@ async function getSetting(key) {
   return rows[0]?.value || null;
 }
 
-async function getAppUrl() {
-  return (await getSetting("app_url")) || "http://localhost:3000";
-}
-
 // ─── Run history (last 3 per job) ─────────────────────────────────────────────
 async function recordRun(type, ok, message) {
   const key = `cron_${type}_history`;
@@ -44,21 +40,79 @@ async function recordRun(type, ok, message) {
 }
 
 // ─── Weekly notification ──────────────────────────────────────────────────────
+// Calls ntfy.sh directly — no dependency on Next.js or auth middleware
 async function sendWeeklyNotification() {
   console.log("[cron] Sending weekly notification...");
   try {
-    const url = await getAppUrl();
-    const res  = await fetch(`${url}/api/notify`, { method: "POST" });
-    const data = await res.json();
-    if (data.sent) {
-      console.log(`[cron] ✓ Sent: "${data.message}"`);
-      await recordRun("notify", true, data.message);
-    } else {
-      console.error("[cron] Failed:", data.error);
-      await recordRun("notify", false, data.error || "Unknown error");
+    const topic      = await getSetting("ntfy_topic");
+    const server     = await getSetting("ntfy_server") || "https://ntfy.sh";
+    const password   = await getSetting("ntfy_password");
+    const publicUrl  = await getSetting("app_public_url") || "";
+
+    if (!topic) {
+      await recordRun("notify", false, "ntfy_topic not configured");
+      return;
     }
+
+    // Build due count directly from DB
+    const { rows: accounts } = await db.execute(
+      "SELECT name, frequency, updated FROM accounts WHERE active = 1"
+    );
+
+    const today = new Date(); today.setHours(0,0,0,0);
+    const dow = today.getDay();
+    const lastSunday = new Date(today);
+    lastSunday.setDate(today.getDate() - (dow === 0 ? 0 : dow));
+
+    const due = accounts.filter(a => {
+      const lastUpdated = new Date(a.updated); lastUpdated.setHours(0,0,0,0);
+      const daysSince = Math.floor((today - lastUpdated) / 86400000);
+      if (a.frequency === "weekly")      return lastUpdated < lastSunday || daysSince > 7;
+      if (a.frequency === "fortnightly") {
+        const target = new Date(lastUpdated); target.setDate(target.getDate() + 14);
+        const tdow = target.getDay();
+        if (tdow !== 0) target.setDate(target.getDate() + (7 - tdow));
+        return today >= target || daysSince > 16;
+      }
+      if (a.frequency === "monthly") {
+        const d = new Date(today.getFullYear(), today.getMonth(), 1);
+        const fdow = d.getDay();
+        d.setDate(fdow === 0 ? 1 : 8 - fdow);
+        return lastUpdated < d || daysSince > 33;
+      }
+      return daysSince > 33;
+    });
+
+    const message = due.length > 0
+      ? `${due.length} account${due.length > 1 ? "s" : ""} to sync · Tap to open Vaulted`
+      : "All accounts up to date · Tap to open Vaulted";
+
+    const headers = {
+      "Content-Type": "text/plain",
+      "Title":    "Time to sync your vault",
+      "Priority": due.length > 0 ? "high" : "default",
+      "Tags":     "money_with_wings",
+    };
+    if (publicUrl) headers["Click"] = publicUrl + "/update";
+    if (password)  headers["Authorization"] = "Bearer " + password;
+
+    const res = await fetch(`${server}/${topic}`, {
+      method: "POST", headers, body: message,
+    });
+
+    if (!res.ok) throw new Error(`ntfy returned ${res.status}`);
+
+    // Log last sent time
+    await db.execute({
+      sql: "INSERT OR REPLACE INTO settings (key, value) VALUES (?,?)",
+      args: ["last_notified", new Date().toISOString()],
+    });
+
+    console.log(`[cron] ✓ Notification sent: "${message}"`);
+    await recordRun("notify", true, message);
+
   } catch (err) {
-    console.error("[cron] Error:", err.message);
+    console.error("[cron] Notification error:", err.message);
     await recordRun("notify", false, err.message);
   }
 }

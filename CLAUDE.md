@@ -70,7 +70,7 @@ Never stored in .env files or committed to git.
 | ntfy_topic     | ntfy.sh notification topic          | Create at https://ntfy.sh               |
 | ntfy_server    | ntfy server URL                     | Default: https://ntfy.sh                |
 | ntfy_password  | ntfy password (private topics only) | Optional                                |
-| app_url        | Public URL of the deployed app      | https://your-domain.com           |
+| app_public_url | Public URL of the deployed app      | https://your-domain.com           |
 | app_password   | Login password for the app          | Set in Admin → Credentials              |
 
 ---
@@ -169,6 +169,7 @@ All features built and deployed at https://your-domain.com
 - ✅ Gemini 2.5 Flash screenshot extraction
 - ✅ ntfy.sh push notifications (Sunday 9am AEST, no net worth in message)
 - ✅ FX rate caching — frankfurter.app direct call from cron (6am AEST)
+- ✅ Cron notification — ntfy.sh direct call (no auth middleware dependency)
 - ✅ GitHub private repo DB backup (Monday 2am)
 - ✅ Session auth + middleware route protection + logout
 - ✅ Joint owner type (H/W/J)

@@ -51,7 +51,7 @@ cd /home/ubuntu/vaulted && git pull origin main && npm run build && pm2 reload a
 
 ---
 
-## Cron & App URL fixes (pending — do not merge without testing)
+## Cron & App URL fixes ✅ DONE
 
 ### Background
 The weekly notification cron was failing at 9am Sunday with:
@@ -67,7 +67,7 @@ The cron has no cookie so middleware blocks it.
 **Immediate fix (already done):** Change `app_url` back to `http://localhost:3000` in
 Admin → Credentials → App Settings.
 
-### Fix 1 — Call ntfy.sh directly from cron (remove API dependency)
+### ✅ Fix 1 — Call ntfy.sh directly from cron (done)
 
 In `scripts/cron.js`, update `sendWeeklyNotification()` to:
 - Read `ntfy_topic`, `ntfy_server`, `ntfy_password` directly from SQLite
@@ -110,7 +110,7 @@ async function sendWeeklyNotification() {
 }
 ```
 
-### Fix 2 — Split app_url into two settings
+### ✅ Fix 2 — Split app_url (done — app_url removed, app_public_url used)
 
 The `app_url` setting is doing double duty:
 - External: used in notification messages, ntfy subscribe URL display
