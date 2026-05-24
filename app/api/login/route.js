@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 import { initDb, getSetting } from "@/lib/db";
+import { verifyPassword } from "@/lib/password";
 
 export async function POST(request) {
   try {
@@ -14,13 +15,16 @@ export async function POST(request) {
 
     const stored = await getSetting("app_password");
 
+    // No password set — allow through
     if (!stored) {
       const res = NextResponse.json({ ok: true });
       res.cookies.set("vaulted_auth", "1", { httpOnly: true, path: "/", sameSite: "lax" });
       return res;
     }
 
-    if (password !== stored) {
+    const valid = await verifyPassword(password, stored);
+
+    if (!valid) {
       return NextResponse.json({ error: "Incorrect password" }, { status: 401 });
     }
 

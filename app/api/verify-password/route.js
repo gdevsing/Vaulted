@@ -1,12 +1,8 @@
 export const dynamic = "force-dynamic";
 
-// POST /api/verify-password
-// Body: { password: string }
-// Returns: { valid: true } or { valid: false }
-// Used by admin panel to confirm current password before saving credentials
-
 import { NextResponse } from "next/server";
-import { getDb, initDb, getSetting } from "@/lib/db";
+import { initDb, getSetting } from "@/lib/db";
+import { verifyPassword } from "@/lib/password";
 
 export async function POST(request) {
   try {
@@ -15,7 +11,8 @@ export async function POST(request) {
     if (!password) return NextResponse.json({ valid: false }, { status: 400 });
 
     const stored = await getSetting("app_password");
-    return NextResponse.json({ valid: password === stored });
+    const valid  = await verifyPassword(password, stored);
+    return NextResponse.json({ valid });
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
