@@ -41,18 +41,23 @@ function DesktopSidebar({ onHelpOpen }) {
   const w = collapsed ? 64 : 220;
 
   return (
-    <aside style={{
-      position: "fixed",
-      top: 0, left: 0, bottom: 0,
-      width: w,
-      background: "var(--surface-solid)",
-      borderRight: "1px solid var(--border)",
-      display: "flex",
-      flexDirection: "column",
-      zIndex: 100,
-      transition: "width 0.25s cubic-bezier(0.16,1,0.3,1)",
-      overflow: "hidden",
-    }}>
+    <aside
+      style={{
+        position: "fixed",
+        top: 0, left: 0, bottom: 0,
+        width: w,
+        background: "var(--surface-solid)",
+        borderRight: "1px solid var(--border)",
+        display: "flex",
+        flexDirection: "column",
+        zIndex: 100,
+        transition: "width 0.25s cubic-bezier(0.16,1,0.3,1)",
+        overflow: "hidden",
+        cursor: collapsed ? "pointer" : "default",
+      }}
+      onClick={collapsed ? toggleCollapsed : undefined}
+      title={collapsed ? "Click to expand" : undefined}
+    >
 
       {/* Logo + collapse toggle */}
       <div style={{
