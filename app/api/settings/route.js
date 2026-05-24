@@ -5,6 +5,7 @@ export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 import { getDb, initDb } from "@/lib/db";
+import { hashPassword, isBcryptHash } from "@/lib/password";
 
 const SECRET_KEYS = ["gemini_api_key", "ntfy_password", "gdrive_token"];
 
@@ -38,9 +39,19 @@ export async function PATCH(request) {
 
     for (const [key, value] of Object.entries(body)) {
       if (typeof value === "string" && value.startsWith("••••")) continue;
+
+      // Skip blank app_password (means keep current)
+      if (key === "app_password" && !value) continue;
+
+      // Hash new passwords before storing
+      let storedValue = String(value);
+      if (key === "app_password" && value && !isBcryptHash(value)) {
+        storedValue = await hashPassword(value);
+      }
+
       await db.execute({
         sql: "INSERT OR REPLACE INTO settings (key, value) VALUES (?,?)",
-        args: [key, String(value)],
+        args: [key, storedValue],
       });
     }
 
