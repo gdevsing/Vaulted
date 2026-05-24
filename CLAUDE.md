@@ -188,3 +188,27 @@ All features built and deployed at https://your-domain.com
 
 ### Pending
 - [ ] Auth hardening with bcrypt (current: plaintext compare against DB)
+
+---
+
+## Due Date Logic
+
+Accounts become due based on the `notify_day` setting (default: Sunday). 
+Logic lives in `app/update/page.js` (`isDue()`) and is mirrored in `scripts/cron.js`.
+
+| Frequency | Due when |
+|---|---|
+| Weekly | Every Sunday — overdue if last sync > 7 days ago |
+| Fortnightly | The Sunday that falls 14+ days after last sync date |
+| Monthly | First Sunday of the current calendar month |
+
+Each account card in the sync flow shows:
+- `weekly · Due now` — if overdue
+- `weekly · Due this Sunday` — if today is Sunday and not yet synced
+- `fortnightly · Due in 2wk` — upcoming due date
+- `monthly · Due 1 Jun` — first Sunday of next month
+
+The DUE | ALL pill on the sync screen filters using this logic.
+DUE = default, shows only accounts where `isDue()` returns true.
+ALL = shows every account regardless of schedule.
+
