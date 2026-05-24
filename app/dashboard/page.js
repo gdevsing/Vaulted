@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import TopBar from "@/components/top-bar";
-import BottomNav from "@/components/nav";
+import AppShell from "@/components/app-shell";
 import AccountCard from "@/components/account-card";
 import DonutChart from "@/components/charts/donut";
 import Sparkline from "@/components/charts/sparkline";
@@ -123,9 +122,7 @@ export default function DashboardPage() {
   const assetLabels = { cash: "Cash", shares: "Shares", crypto: "Crypto", super: "Super" };
 
   return (
-    <>
-      <TopBar />
-      <main className="page" style={{ paddingTop: 16, display: "flex", flexDirection: "column", gap: 14 }}>
+    <AppShell><main className="page" style={{ paddingTop: 16, display: "flex", flexDirection: "column", gap: 14 }}>
         <div className="fade-up" style={{ display: "flex", justifyContent: "center" }}>
           <OwnerFilter active={owner} onChange={setOwner} />
         </div>
@@ -165,8 +162,6 @@ export default function DashboardPage() {
           </>
         )}
         <div style={{ height: 8 }} />
-      </main>
-      <BottomNav />
-    </>
+      </main></AppShell>
   );
 }

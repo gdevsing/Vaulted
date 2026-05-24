@@ -5,8 +5,7 @@ import {
   ResponsiveContainer, AreaChart, Area,
   XAxis, YAxis, Tooltip, CartesianGrid,
 } from "recharts";
-import TopBar from "@/components/top-bar";
-import BottomNav from "@/components/nav";
+import AppShell from "@/components/app-shell";
 import { useTheme } from "@/app/layout";
 import { fmt, fmtShort, fmtPct } from "@/lib/utils";
 import { ASSETS } from "@/lib/tokens";
@@ -141,9 +140,7 @@ export default function TrendsPage() {
   const isEmpty = !loading && historyData.length === 0;
 
   return (
-    <>
-      <TopBar />
-      <main className="page" style={{ paddingTop: 16, display: "flex", flexDirection: "column", gap: 16 }}>
+    <AppShell><main className="page" style={{ paddingTop: 16, display: "flex", flexDirection: "column", gap: 16 }}>
 
         <div className="fade-up">
           <div style={{ fontFamily: "var(--font-display)", fontSize: 20, color: "var(--ink)", marginBottom: 4 }}>Trends</div>
@@ -291,8 +288,6 @@ export default function TrendsPage() {
         )}
 
         <div style={{ height: 8 }} />
-      </main>
-      <BottomNav />
-    </>
+      </main></AppShell>
   );
 }

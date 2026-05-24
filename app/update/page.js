@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import TopBar from "@/components/top-bar";
-import BottomNav from "@/components/nav";
+import AppShell from "@/components/app-shell";
 import { useTheme } from "@/app/layout";
 import { fetchAccounts, saveSnapshot, fetchFxRate } from "@/lib/api";
 import { fmt, assetLabel, daysAgo } from "@/lib/utils";
@@ -521,21 +520,15 @@ export default function UpdatePage() {
   const handleReset = () => { setDone([]); setSkipped([]); setComplete(false); setShowAll(false); };
 
   if (loading) return (
-    <>
-      <TopBar />
-      <main className="page" style={{ paddingTop:16 }}>
+    <AppShell><main className="page" style={{ paddingTop:16 }}>
         <div style={{ textAlign:"center", padding:"48px 0", fontFamily:"var(--font-mono)", fontSize:10, color:"var(--ink2)", letterSpacing:"0.1em" }}>
           LOADING ACCOUNTS...
         </div>
-      </main>
-      <BottomNav />
-    </>
+      </main></AppShell>
   );
 
   return (
-    <>
-      <TopBar />
-      <main className="page" style={{ paddingTop:16, display:"flex", flexDirection:"column", gap:16 }}>
+    <AppShell><main className="page" style={{ paddingTop:16, display:"flex", flexDirection:"column", gap:16 }}>
 
         {complete ? (
           <CompletionScreen count={done.length} onReset={handleReset} />
@@ -635,9 +628,8 @@ export default function UpdatePage() {
             )}
           </>
         )}
-      </main>
-      <BottomNav />
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-    </>
+      </main>
+    </AppShell>
   );
 }

@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import TopBar from "@/components/top-bar";
-import BottomNav from "@/components/nav";
+import AppShell from "@/components/app-shell";
 import { useTheme } from "@/app/layout";
 import { fetchAccounts, createAccount, updateAccount, deleteAccount, fetchSettings, updateSettings, sendTestNotification, getNotifyStatus, fetchFxRate } from "@/lib/api";
 import { fmt, assetLabel, ownerLabel } from "@/lib/utils";
@@ -625,9 +624,7 @@ export default function AdminPage() {
   ).length;
 
   return (
-    <>
-      <TopBar />
-      <main className="page" style={{ paddingTop:16, display:"flex", flexDirection:"column", gap:16 }}>
+    <AppShell><main className="page" style={{ paddingTop:16, display:"flex", flexDirection:"column", gap:16 }}>
 
         {/* Header */}
         <div className="fade-up" style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
@@ -723,8 +720,6 @@ export default function AdminPage() {
         )}
 
         <div style={{ height:8 }} />
-      </main>
-      <BottomNav />
-    </>
+      </main></AppShell>
   );
 }
