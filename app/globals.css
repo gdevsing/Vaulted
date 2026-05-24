@@ -26,20 +26,20 @@
   --font-serif:   'Cormorant Garamond', serif;
 }
 
-/* ─── Light theme ── */
+/* ─── Light theme — Peach Sorbet ── */
 [data-theme="light"] {
-  --bg:           #F5F0E8;
-  --surface:      linear-gradient(145deg, rgba(26,22,20,0.05) 0%, rgba(26,22,20,0.02) 100%);
-  --surface-solid:#EDE8DF;
-  --border:       rgba(26,22,20,0.09);
-  --border-strong:rgba(26,22,20,0.16);
-  --ink:          #1A1614;
-  --ink2:         #8A7E74;
-  --ink3:         #D8CFC4;
-  --gold:         #B87800;
-  --gold-dark:    #7A4E00;
-  --positive:     #1A7A38;
-  --negative:     #C03030;
+  --bg:           #FDF6F0;
+  --surface:      linear-gradient(145deg, rgba(80,40,10,0.05) 0%, rgba(80,40,10,0.02) 100%);
+  --surface-solid:#ECD8C8;
+  --border:       rgba(80,40,10,0.08);
+  --border-strong:rgba(80,40,10,0.15);
+  --ink:          #2E1A08;
+  --ink2:         #9A7860;
+  --ink3:         #DCC8B4;
+  --gold:         #9A5400;
+  --gold-dark:    #6A3800;
+  --positive:     #2A6E3A;
+  --negative:     #B83030;
   --cash:         #1A5A9A;
   --shares:       #1A7A38;
   --crypto:       #6040B0;
