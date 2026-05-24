@@ -214,6 +214,15 @@ function CredentialGroup({ group, settings, onSave }) {
                 placeholder={f.placeholder}
               />
             )}
+            {f.help && (
+              <div style={{
+                fontFamily: "var(--font-mono)", fontSize: 9,
+                color: "var(--ink2)", letterSpacing: "0.04em",
+                marginTop: 5, lineHeight: 1.6,
+              }}>
+                {f.help}
+              </div>
+            )}
           </Field>
         ))}
       </div>

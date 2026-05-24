@@ -186,18 +186,6 @@ function DesktopSidebar({ onHelpOpen }) {
           {collapsed && <div className="sidebar-tooltip">{theme === "dark" ? "LIGHT MODE" : "DARK MODE"}</div>}
         </button>
 
-        {/* Expand when collapsed */}
-        {collapsed && (
-          <button onClick={toggleCollapsed} className="btn-press" style={{
-            display: "flex", alignItems: "center", justifyContent: "center",
-            padding: "10px 0", background: "transparent", border: "none",
-            cursor: "pointer", width: "100%", position: "relative",
-          }}>
-            <span style={{ fontSize: 12, color: "var(--ink2)" }}>▶</span>
-            <div className="sidebar-tooltip">EXPAND</div>
-          </button>
-        )}
-
         {/* Logout */}
         <button onClick={handleLogout} className="btn-press" style={{
           display: "flex", alignItems: "center",
