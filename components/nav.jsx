@@ -68,20 +68,32 @@ function DesktopSidebar({ onHelpOpen }) {
         borderBottom: "1px solid var(--border)",
         minHeight: 64,
       }}>
-        {!collapsed && <Logo size="sm" />}
-        {collapsed && (
+        {collapsed ? (
           <div style={{ width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center" }}>
             <Logo size="sm" showWordmark={false} />
           </div>
-        )}
-        {!collapsed && (
-          <button onClick={toggleCollapsed} className="btn-press" style={{
-            background: "none", border: "1px solid var(--border)",
-            borderRadius: "2px 6px 6px 2px", padding: "4px 7px",
-            cursor: "pointer", color: "var(--ink2)", fontSize: 11,
-          }}>
-            ◀
-          </button>
+        ) : (
+          <>
+            <Logo size="sm" />
+            <button
+              onClick={e => { e.stopPropagation(); toggleCollapsed(); }}
+              className="btn-press"
+              title="Collapse sidebar"
+              style={{
+                background: "none",
+                border: "1px solid var(--border)",
+                borderRadius: "2px 6px 6px 2px",
+                padding: "4px 8px",
+                cursor: "pointer",
+                color: "var(--ink2)",
+                fontSize: 11,
+                lineHeight: 1,
+                flexShrink: 0,
+              }}
+            >
+              ◀
+            </button>
+          </>
         )}
       </div>
 
