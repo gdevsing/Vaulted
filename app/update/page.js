@@ -8,12 +8,99 @@ import { fmt, assetLabel, daysAgo } from "@/lib/utils";
 import { ASSETS } from "@/lib/tokens";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+// ─── Sunday-aligned due date logic ───────────────────────────────────────────
+// Weekly:      due every Sunday (overdue if last sync > 7 days ago)
+// Fortnightly: due on the Sunday that falls 14+ days after last sync
+// Monthly:     due on the first Sunday of each calendar month
+
+function getLastSunday() {
+  const now = new Date();
+  const day = now.getDay(); // 0 = Sunday
+  const diff = day === 0 ? 0 : day;
+  const lastSun = new Date(now);
+  lastSun.setDate(now.getDate() - diff);
+  lastSun.setHours(0, 0, 0, 0);
+  return lastSun;
+}
+
+function getFirstSundayOfMonth(date) {
+  const d = new Date(date.getFullYear(), date.getMonth(), 1);
+  const day = d.getDay();
+  d.setDate(day === 0 ? 1 : 8 - day);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function getNextSundayAfterDays(fromDate, days) {
+  const target = new Date(fromDate);
+  target.setDate(target.getDate() + days);
+  // Round up to the next Sunday
+  const dow = target.getDay();
+  if (dow !== 0) target.setDate(target.getDate() + (7 - dow));
+  target.setHours(0, 0, 0, 0);
+  return target;
+}
+
+function isDue(account) {
+  const lastUpdated = new Date(account.updated);
+  lastUpdated.setHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const daysSince = Math.floor((today - lastUpdated) / 86400000);
+  const lastSunday = getLastSunday();
+
+  if (account.frequency === "weekly") {
+    // Due if last sync was before last Sunday (or overdue > 7 days)
+    return lastUpdated < lastSunday || daysSince > 7;
+  }
+
+  if (account.frequency === "fortnightly") {
+    // Due on the Sunday that falls 14+ days after last sync
+    const nextDueSunday = getNextSundayAfterDays(lastUpdated, 14);
+    return today >= nextDueSunday || daysSince > 16;
+  }
+
+  if (account.frequency === "monthly") {
+    // Due on first Sunday of current month
+    const firstSunThisMonth = getFirstSundayOfMonth(today);
+    return lastUpdated < firstSunThisMonth || daysSince > 33;
+  }
+
+  return daysSince > 33;
+}
+
 function getDueAccounts(accounts) {
-  return accounts.filter(a => {
-    const days = Math.floor((Date.now() - new Date(a.updated)) / 86400000);
-    const limits = { weekly: 8, fortnightly: 16, monthly: 33 };
-    return days >= (limits[a.frequency] || 33) || a.overdue;
-  });
+  return accounts.filter(a => isDue(a) || a.overdue);
+}
+
+// ─── Next due label for display ───────────────────────────────────────────────
+function getNextDueLabel(account) {
+  const lastUpdated = new Date(account.updated);
+  lastUpdated.setHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  if (isDue(account)) return "Due now";
+
+  let nextDue;
+  if (account.frequency === "weekly") {
+    // Next Sunday
+    const dow = today.getDay();
+    nextDue = new Date(today);
+    nextDue.setDate(today.getDate() + (dow === 0 ? 7 : 7 - dow));
+  } else if (account.frequency === "fortnightly") {
+    nextDue = getNextSundayAfterDays(lastUpdated, 14);
+  } else {
+    // First Sunday of next month
+    const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+    nextDue = getFirstSundayOfMonth(nextMonth);
+  }
+
+  const days = Math.floor((nextDue - today) / 86400000);
+  if (days === 0) return "Due this Sunday";
+  if (days <= 7) return `Due in ${days}d`;
+  if (days <= 14) return `Due in ${Math.ceil(days/7)}wk`;
+  return `Due ${nextDue.toLocaleDateString("en-AU", { day:"numeric", month:"short" })}`;
 }
 
 function fileToBase64(file) {
@@ -309,6 +396,12 @@ function AccountUpdateCard({ account, onSave, onSkip }) {
             </div>
             <div style={{ fontFamily:"var(--font-mono)", fontSize:9, color:"var(--ink2)", letterSpacing:"0.08em" }}>
               {account.institution} · last updated {daysAgo(account.updated)}
+            </div>
+            <div style={{
+              fontFamily:"var(--font-mono)", fontSize:8, letterSpacing:"0.08em", marginTop:2,
+              color: isDue(account) ? "var(--negative)" : "var(--ink2)",
+            }}>
+              {account.frequency} · {getNextDueLabel(account)}
             </div>
           </div>
           <div style={{ textAlign:"right" }}>
