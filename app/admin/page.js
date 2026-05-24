@@ -110,45 +110,108 @@ function Select({ value, onChange, options }) {
   );
 }
 
-// ─── Secret input with show/hide toggle ──────────────────────────────────────
+// ─── Secret input — no show/hide, always masked ──────────────────────────────
 function SecretInput({ value, onChange, placeholder }) {
-  const [show, setShow] = useState(false);
   const isMasked = value?.startsWith("••••");
   return (
-    <div style={{ position:"relative" }}>
-      <input
-        type={show ? "text" : "password"}
-        value={value || ""}
-        onChange={e => onChange(e.target.value)}
-        placeholder={placeholder}
-        style={{
-          width:"100%", background:"rgba(255,255,255,0.03)",
-          border:"1px solid var(--border-strong)", borderRadius:"2px 9px 9px 2px",
-          padding:"9px 36px 9px 12px", fontFamily:"var(--font-mono)", fontSize:11,
-          color: isMasked ? "var(--ink2)" : "var(--ink)",
-          outline:"none", boxSizing:"border-box",
-        }}
-      />
-      <button
-        onClick={() => setShow(s => !s)}
-        style={{
-          position:"absolute", right:10, top:"50%", transform:"translateY(-50%)",
-          background:"none", border:"none", cursor:"pointer",
-          fontFamily:"var(--font-mono)", fontSize:9, color:"var(--ink2)",
-          letterSpacing:"0.08em",
-        }}
-      >
-        {show ? "HIDE" : "SHOW"}
-      </button>
-    </div>
+    <input
+      type="password"
+      value={value || ""}
+      onChange={e => onChange(e.target.value)}
+      placeholder={placeholder}
+      style={{
+        width:"100%", background:"rgba(255,255,255,0.03)",
+        border:"1px solid var(--border-strong)", borderRadius:"2px 9px 9px 2px",
+        padding:"9px 12px", fontFamily:"var(--font-mono)", fontSize:11,
+        color: isMasked ? "var(--ink2)" : "var(--ink)",
+        outline:"none", boxSizing:"border-box",
+      }}
+    />
+  );
+}
+
+// ─── Password confirm modal ───────────────────────────────────────────────────
+function PasswordConfirmModal({ onConfirm, onCancel, error }) {
+  const [pwd, setPwd] = useState("");
+  const { theme } = useTheme();
+
+  const handleSubmit = () => { if (pwd) onConfirm(pwd); };
+
+  return (
+    <>
+      <div onClick={onCancel} style={{
+        position:"fixed", inset:0, background:"rgba(0,0,0,0.6)", zIndex:299,
+      }} />
+      <div style={{
+        position:"fixed", top:"50%", left:"50%",
+        transform:"translate(-50%,-50%)",
+        background: theme === "dark" ? "#1A1614" : "#EDE8DF",
+        border:"1px solid var(--border-strong)",
+        borderRadius:"3px 16px 16px 3px",
+        padding:"24px 24px 20px",
+        width:"calc(100% - 48px)", maxWidth:360,
+        zIndex:300,
+        boxShadow:"0 24px 60px rgba(0,0,0,0.5)",
+      }}>
+        <div style={{ fontFamily:"var(--font-display)", fontSize:15, color:"var(--ink)", marginBottom:4 }}>
+          Confirm password
+        </div>
+        <div style={{ fontFamily:"var(--font-mono)", fontSize:9, color:"var(--ink2)", letterSpacing:"0.06em", marginBottom:16 }}>
+          Enter your current login password to save changes
+        </div>
+
+        <input
+          type="password"
+          value={pwd}
+          onChange={e => setPwd(e.target.value)}
+          onKeyDown={e => e.key === "Enter" && handleSubmit()}
+          placeholder="Current password"
+          autoFocus
+          style={{
+            width:"100%", background:"rgba(255,255,255,0.03)",
+            border:`1px solid ${error ? "var(--negative)" : "var(--border-strong)"}`,
+            borderRadius:"2px 9px 9px 2px",
+            padding:"10px 12px", fontFamily:"var(--font-mono)", fontSize:12,
+            color:"var(--ink)", outline:"none", boxSizing:"border-box", marginBottom:8,
+          }}
+        />
+        {error && (
+          <div style={{ fontFamily:"var(--font-mono)", fontSize:9, color:"var(--negative)", marginBottom:8, letterSpacing:"0.06em" }}>
+            ⚠ Incorrect password
+          </div>
+        )}
+
+        <div style={{ display:"flex", gap:8, marginTop:8 }}>
+          <button onClick={handleSubmit} disabled={!pwd} className="btn-press" style={{
+            flex:1, padding:"11px",
+            background: pwd ? "var(--gold)" : "var(--ink3)",
+            border:"none", borderRadius:"2px 9px 9px 2px",
+            fontFamily:"var(--font-mono)", fontSize:11, letterSpacing:"0.1em",
+            color: pwd ? "#0C0A08" : "var(--ink2)", cursor: pwd ? "pointer" : "not-allowed",
+          }}>
+            CONFIRM
+          </button>
+          <button onClick={onCancel} className="btn-press" style={{
+            padding:"11px 16px", background:"transparent",
+            border:"1px solid var(--border)", borderRadius:"2px 9px 9px 2px",
+            fontFamily:"var(--font-mono)", fontSize:11, letterSpacing:"0.1em",
+            color:"var(--ink2)", cursor:"pointer",
+          }}>
+            CANCEL
+          </button>
+        </div>
+      </div>
+    </>
   );
 }
 
 // ─── Credential group card ────────────────────────────────────────────────────
 function CredentialGroup({ group, settings, onSave }) {
-  const [local, setLocal] = useState({});
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved]   = useState(false);
+  const [local, setLocal]         = useState({});
+  const [saving, setSaving]       = useState(false);
+  const [saved, setSaved]         = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [pwdError, setPwdError]   = useState(false);
 
   useEffect(() => {
     const init = {};
@@ -156,7 +219,22 @@ function CredentialGroup({ group, settings, onSave }) {
     setLocal(init);
   }, [settings, group]);
 
-  const handleSave = async () => {
+  const handleSaveClick = () => {
+    setPwdError(false);
+    setShowModal(true);
+  };
+
+  const handleConfirm = async (password) => {
+    // Verify password first
+    const res = await fetch("/api/verify-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password }),
+    });
+    const { valid } = await res.json();
+    if (!valid) { setPwdError(true); return; }
+
+    setShowModal(false);
     setSaving(true);
     await onSave(local);
     setSaving(false);
@@ -227,9 +305,18 @@ function CredentialGroup({ group, settings, onSave }) {
         ))}
       </div>
 
+      {/* Password confirm modal */}
+      {showModal && (
+        <PasswordConfirmModal
+          onConfirm={handleConfirm}
+          onCancel={() => { setShowModal(false); setPwdError(false); }}
+          error={pwdError}
+        />
+      )}
+
       {/* Save button */}
       <button
-        onClick={handleSave}
+        onClick={handleSaveClick}
         disabled={saving || !hasChanges}
         className="btn-press"
         style={{

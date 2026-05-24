@@ -45,9 +45,10 @@ async function runFx() {
 // ─── Notify — send ntfy.sh notification directly ─────────────────────────────
 async function runNotify() {
   const db       = getDb();
-  const topic    = await getSetting("ntfy_topic");
-  const server   = (await getSetting("ntfy_server")) || "https://ntfy.sh";
-  const password = await getSetting("ntfy_password");
+  const topic      = await getSetting("ntfy_topic");
+  const server     = (await getSetting("ntfy_server")) || "https://ntfy.sh";
+  const password   = await getSetting("ntfy_password");
+  const publicUrl  = await getSetting("app_public_url") || "";
 
   if (!topic) {
     const msg = "ntfy_topic not configured";
@@ -63,11 +64,10 @@ async function runNotify() {
     return days >= ({ weekly: 8, fortnightly: 16, monthly: 33 }[a.frequency] || 33);
   });
 
-  const dueStr  = due.length > 0
-    ? `${due.length} account${due.length > 1 ? "s" : ""} to update`
-    : "All accounts up to date";
-  const message = dueStr;
-  const title    = "Time to sync your vault";
+  const message = due.length > 0
+    ? `${due.length} account${due.length > 1 ? "s" : ""} to sync · Tap to open Vaulted`
+    : "All accounts up to date · Tap to open Vaulted";
+  const title = "Time to sync your vault";
 
   const headers = {
     "Content-Type": "text/plain",
@@ -75,7 +75,8 @@ async function runNotify() {
     "Priority": due.length > 0 ? "high" : "default",
     "Tags":     "money_with_wings",
   };
-  if (password) headers["Authorization"] = "Bearer " + password;
+  if (publicUrl) headers["Click"] = publicUrl + "/update";
+  if (password)  headers["Authorization"] = "Bearer " + password;
 
   const ntfyRes = await fetch(`${server}/${topic}`, {
     method: "POST", headers, body: message,
