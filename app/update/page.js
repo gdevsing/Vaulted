@@ -543,16 +543,25 @@ export default function UpdatePage() {
                   {remaining.length} account{remaining.length !== 1 ? "s" : ""} remaining
                 </div>
               </div>
-              <button onClick={() => { setShowAll(v => !v); setDone([]); setSkipped([]); }} className="btn-press" style={{
-                fontFamily:"var(--font-mono)", fontSize:8, letterSpacing:"0.1em",
-                padding:"5px 10px", borderRadius:"2px 8px 8px 2px", cursor:"pointer",
-                background: showAll ? "rgba(255,210,74,0.12)" : "transparent",
-                border: showAll ? "1px solid var(--gold)" : "1px solid var(--border)",
-                color: showAll ? "var(--gold)" : "var(--ink2)",
-                transition:"all 0.2s",
-              }}>
-                {showAll ? "ALL ACCOUNTS" : "DUE ONLY"}
-              </button>
+              <div style={{ display:"flex", gap:4, background:"var(--ink3)", borderRadius:"3px 10px 10px 3px", padding:3 }}>
+                {[{key:false,label:"DUE"},{key:true,label:"ALL"}].map(o => (
+                  <button
+                    key={String(o.key)}
+                    onClick={() => { setShowAll(o.key); setDone([]); setSkipped([]); }}
+                    className="btn-press"
+                    style={{
+                      fontFamily:"var(--font-mono)", fontSize:9, letterSpacing:"0.1em",
+                      padding:"5px 12px", borderRadius:"2px 7px 7px 2px", border:"none",
+                      cursor:"pointer",
+                      background: showAll === o.key ? "var(--gold)" : "transparent",
+                      color: showAll === o.key ? "#0C0A08" : "var(--ink2)",
+                      transition:"all 0.2s",
+                    }}
+                  >
+                    {o.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="fade-up fade-up-1">
@@ -599,13 +608,9 @@ export default function UpdatePage() {
                 <div style={{ fontSize:28 }}>◎</div>
                 <div style={{ fontFamily:"var(--font-display)", fontSize:16, color:"var(--ink)" }}>All up to date</div>
                 <div style={{ fontFamily:"var(--font-mono)", fontSize:10, color:"var(--ink2)" }}>No accounts due for sync</div>
-                <button onClick={() => setShowAll(true)} className="btn-press" style={{
-                  marginTop:4, fontFamily:"var(--font-mono)", fontSize:9, letterSpacing:"0.1em",
-                  padding:"8px 16px", borderRadius:"2px 8px 8px 2px", cursor:"pointer",
-                  background:"transparent", border:"1px solid var(--border)", color:"var(--ink2)",
-                }}>
-                  UPDATE ALL ACCOUNTS ANYWAY
-                </button>
+                <div style={{ fontFamily:"var(--font-mono)", fontSize:9, color:"var(--ink2)", marginTop:8, letterSpacing:"0.06em" }}>
+                  Switch to ALL above to update any account manually
+                </div>
               </div>
             ) : null}
 
