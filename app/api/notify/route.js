@@ -46,7 +46,8 @@ export async function POST(request) {
     const topic    = await getSetting("ntfy_topic");
     const server   = await getSetting("ntfy_server") || "https://ntfy.sh";
     const password = await getSetting("ntfy_password");
-    const appUrl   = await getSetting("app_url") || "";
+    // app_url = internal (localhost), app_public_url = external domain
+    const appPublicUrl = await getSetting("app_public_url") || "";
 
     if (!topic) {
       return NextResponse.json(
@@ -73,7 +74,7 @@ export async function POST(request) {
       "Priority": priority,
       "Tags":     tags.join(","),
     };
-    if (appUrl) headers["Click"] = appUrl + "/update";
+    if (appPublicUrl) headers["Click"] = appPublicUrl + "/update";
 
     if (password) {
       headers["Authorization"] = "Bearer " + password;
