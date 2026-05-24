@@ -93,9 +93,9 @@ User opens /update
 
 ```
 vaulted-cron (PM2 process)
- ├─ Sunday 9:00 AM AEST   → POST ntfy.sh ("X accounts to sync")
- ├─ Daily  6:00 AM AEST   → GET frankfurter.app → cache USD/AUD in DB
- └─ Monday 2:00 AM AEST   → Upload vaulted.db → GitHub private repo
+ ├─ Sunday 9:00 AM AEST   → POST ntfy.sh directly (no API hop)
+ ├─ Daily  6:00 AM AEST   → GET frankfurter.app directly → cache in DB
+ └─ Monday 2:00 AM AEST   → Push vaulted.db → GitHub private repo
 ```
 
 ---
