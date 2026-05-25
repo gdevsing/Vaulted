@@ -139,3 +139,81 @@ Note: After Fix 1 is done, the cron won't need `app_internal_url` for notificati
 or FX (both call external services directly). It may still be needed for any future
 jobs that need to call the app API.
 
+
+---
+
+## Security Headers (Grade F → A)
+
+Current score: **F** — all 6 security headers missing.
+Tested at: https://securityheaders.com/?q=vaulted.gdevsingh.com
+
+All fixes are in **Nginx config only** — no code changes needed.
+
+### Step 1 — SSH into VPS and edit Nginx config
+
+```bash
+sudo nano /etc/nginx/sites-available/vaulted
+```
+
+### Step 2 — Add these headers inside the `server` block
+
+```nginx
+# ── Security headers ──────────────────────────────────────────────
+# Forces HTTPS for 1 year
+add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
+# Prevents XSS attacks by whitelisting content sources
+add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' fonts.googleapis.com fonts.gstatic.com; connect-src 'self'; frame-ancestors 'none';" always;
+
+# Prevents clickjacking
+add_header X-Frame-Options "SAMEORIGIN" always;
+
+# Prevents MIME sniffing
+add_header X-Content-Type-Options "nosniff" always;
+
+# Controls referrer information sent with requests
+add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+# Disables unused browser features
+add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()" always;
+
+# ── Hide server info ───────────────────────────────────────────────
+# Hides nginx version and OS from attackers
+server_tokens off;
+```
+
+### Step 3 — Also add to http block in nginx.conf to hide X-Powered-By
+
+```bash
+sudo nano /etc/nginx/nginx.conf
+```
+
+Add inside the `http {}` block:
+```nginx
+more_clear_headers 'X-Powered-By';
+```
+
+Or simpler — add to Next.js `next.config.js`:
+```js
+const nextConfig = {
+  poweredByHeader: false,
+};
+module.exports = nextConfig;
+```
+
+### Step 4 — Test and reload
+
+```bash
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+### Step 5 — Verify
+
+Re-run: https://securityheaders.com/?q=vaulted.gdevsingh.com
+Target grade: **A** or **A+**
+
+### Notes
+- CSP uses `unsafe-inline` because Next.js injects inline scripts — this is normal for Next.js apps
+- `unsafe-eval` may be needed for some chart libraries (recharts) — remove if score allows
+- The `X-Powered-By: Next.js` header is best removed via `next.config.js` (see Step 3)
