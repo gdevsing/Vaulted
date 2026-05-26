@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
+import { getMockResponse } from "@/lib/mock-data";
 
 const PUBLIC = ["/login", "/api/login", "/api/logout", "/api/verify-password"];
 
 export function middleware(request) {
-  const { pathname } = request.nextUrl;
+  const { pathname, searchParams } = request.nextUrl;
 
   if (PUBLIC.some(p => pathname.startsWith(p))) {
     return NextResponse.next();
@@ -15,6 +16,11 @@ export function middleware(request) {
       return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
     }
     return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  // Mock mode — intercept all API calls before they reach route handlers or the DB
+  if (auth.value === "mock" && pathname.startsWith("/api/")) {
+    return NextResponse.json(getMockResponse(pathname, request.method, searchParams));
   }
 
   return NextResponse.next();

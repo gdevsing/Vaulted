@@ -198,6 +198,15 @@ Nothing — all features and security hardening complete.
 - ✅ Nginx rate limiting on /api/login — 5 attempts/min per IP (VPS)
 - ✅ Security headers — HSTS, CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy (VPS)
 
+### Mock Mode
+Set `app_password_mock` in Admin → Credentials → App Settings to enable a second login password that shows fake demo data instead of real balances.
+
+- Cookie is set to `"mock"` instead of `"real"` on login
+- middleware.js intercepts all `/api/*` calls before they reach route handlers
+- `lib/mock-data.js` `getMockResponse()` returns fake shapes per endpoint
+- Real DB is structurally unreachable — no conditional check, no API hop possible
+- Leave `app_password_mock` blank to disable (default)
+
 ---
 
 ## Due Date Logic
