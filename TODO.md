@@ -14,9 +14,11 @@
 - [ ] Audit all cron jobs — confirm none call `/api/*` internally now that API routes require auth
 
 ### Nice to Have
-- [ ] DB backup restore — add Restore DB button in Admin panel to upload a `.db` backup file and hot-swap the live database (see feature branch `feature/db-restore-admin`)
-- [ ] DB backup restore test — verify the GitHub backup can actually be restored end-to-end
+- [ ] DB restore end-to-end test — merge PR #78, then do a real restore from the Monday backup and verify data is intact
 - [ ] Add `/api/health` endpoint (no auth required) for uptime monitoring
+
+### Shipped ✓
+- [x] DB restore in Admin — GitHub backup pull (reads repo/token/filename from settings dynamically) + manual `.db` upload fallback (PR #78)
 
 ---
 
@@ -62,6 +64,7 @@ Low risk for this app — none of the vulnerable features (rewrites, i18n, remot
 - [x] Notification privacy fix (net worth removed from push message)
 - [x] Mock password removed from production
 - [x] smoke-test.js removed
+- [x] DB restore in Admin panel (GitHub pull + manual upload, double-auth protected)
 
 ---
 
