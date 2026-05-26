@@ -374,6 +374,20 @@ This is fine and already configured.
 
 ---
 
+## VPS Prerequisites for CI/CD Pipeline
+
+Before the auto-rollback deploy pipeline works correctly, ensure these are installed on the VPS:
+
+```bash
+# sqlite3 CLI — needed to read ntfy settings from DB in deploy script
+sudo apt-get install -y sqlite3
+
+# Verify it works
+sqlite3 /home/ubuntu/vaulted/vaulted.db "SELECT value FROM settings WHERE key='ntfy_topic';"
+```
+
+---
+
 ## Deploy Pipeline Flow
 
 ```
