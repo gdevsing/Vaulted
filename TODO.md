@@ -3,18 +3,15 @@
 ## Features & Improvements
 
 ### Post-Deploy Cleanup
-- [ ] Clear `app_password_mock` from DB via SSH:
-  ```bash
-  sqlite3 /home/ubuntu/vaulted/vaulted.db "DELETE FROM settings WHERE key='app_password_mock';"
-  ```
-- [ ] Verify `scripts/smoke-test.js` is gone from main after PR merge
+- [x] Clear `app_password_mock` from DB via SSH
+- [x] Verify `scripts/smoke-test.js` is gone from main after PR merge
 
 ### Near-Term Hardening
 - [ ] Next.js 14 → 16 upgrade (steps already in Maintenance section)
 - [ ] Audit all cron jobs — confirm none call `/api/*` internally now that API routes require auth
 
 ### Nice to Have
-- [ ] DB restore end-to-end test — merge PR #78, then do a real restore from the Monday backup and verify data is intact
+- [x] DB restore end-to-end test — verified restore works with real backup
 - [ ] Add `/api/health` endpoint (no auth required) for uptime monitoring
 
 ### Shipped ✓
