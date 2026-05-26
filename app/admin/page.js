@@ -61,7 +61,8 @@ const CREDENTIAL_GROUPS = [
     description: "General app configuration",
     fields: [
       { key: "app_public_url", label: "Public URL",     secret: false, placeholder: "https://your-domain.com",    help: "Your app's public domain. Used in notification click links so tapping the alert opens your app directly." },
-      { key: "app_password", label: "Login Password", secret: true,  placeholder: "Choose a strong password" },
+      { key: "app_password",      label: "Login Password", secret: true, placeholder: "Choose a strong password" },
+      { key: "app_password_mock", label: "Mock Password",  secret: true, placeholder: "Shows fake data — leave blank to disable", help: "Enter a second password that shows demo data instead of real balances. Real data is never accessible with this password." },
       { key: "notify_day",   label: "Notify Day",     secret: false, placeholder: "sunday" },
       { key: "ntfy_topic",   label: "ntfy Topic",     secret: false, placeholder: "vaulted-sync" },
     ],
