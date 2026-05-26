@@ -145,7 +145,7 @@ jobs that need to call the app API.
 ## Security Headers (Grade F → A) ✅ DONE
 
 Current score: **F** — all 6 security headers missing.
-Tested at: https://securityheaders.com/?q=vaulted.gdevsingh.com
+Tested at: https://securityheaders.com/?q=https://your-domain.com
 
 All fixes are in **Nginx config only** — no code changes needed.
 
@@ -210,7 +210,7 @@ sudo systemctl reload nginx
 
 ### Step 5 — Verify
 
-Re-run: https://securityheaders.com/?q=vaulted.gdevsingh.com
+Re-run: https://securityheaders.com/?q=https://your-domain.com
 Target grade: **A** or **A+**
 
 ### Notes
