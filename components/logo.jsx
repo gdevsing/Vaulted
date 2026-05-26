@@ -11,11 +11,17 @@ export default function Logo({ size = "default", showWordmark = true, className 
     lg:      { mark: 56, word: 24, gap: 16 },
   };
 
-  const s     = sizes[size] || sizes.default;
-  const fg    = theme === "dark" ? "#F0ECE8" : "#1A1614";
-  const accent= theme === "dark" ? "#FFD24A" : "#B87800";
-  const c     = s.mark / 2;
-  const r     = s.mark * 0.44;
+  const s      = sizes[size] || sizes.default;
+  const fg     = theme === "dark" ? "#F0ECE8" : "#1A1614";
+  const accent = theme === "dark" ? "#FFD24A" : "#B87800";
+  const c      = s.mark / 2;
+  const r      = s.mark * 0.44;
+
+  // 10pm = -60deg from 12. Needle tip coords for static version:
+  // x2 = c + r*0.68 * sin(-60deg) = c - r*0.68*0.866 = c - r*0.589
+  // y2 = c - r*0.68 * cos(-60deg) = c - r*0.68*0.5   = c - r*0.34
+  const nx = c - r * 0.589;
+  const ny = c - r * 0.34;
 
   return (
     <div style={{ display: "inline-flex", alignItems: "center", gap: s.gap }} className={className}>
@@ -32,16 +38,29 @@ export default function Logo({ size = "default", showWordmark = true, className 
           x2={c} y2={c - r + s.mark * 0.1}
           stroke={fg} strokeWidth={s.mark * 0.026} strokeLinecap="round" strokeOpacity="0.45"
         />
-        {/* Needle — rests at 10 o'clock (-60deg from 12) */}
-        <line
-          x1={c} y1={c}
-          x2={c - r * 0.588} y2={c - r * 0.34}
-          stroke={accent} strokeWidth={s.mark * 0.034} strokeLinecap="round"
-          style={animate ? {
+
+        {animate ? (
+          // Animated: needle drawn at 12pm, <g> rotates to 10pm via dialTurn
+          // dialTurn goes FROM rotate(0deg) TO rotate(-60deg) — clean, no compounding
+          <g style={{
             transformOrigin: `${c}px ${c}px`,
             animation: "dialTurn 2s cubic-bezier(0.16,1,0.3,1) both",
-          } : undefined}
-        />
+          }}>
+            <line
+              x1={c} y1={c}
+              x2={c} y2={c - r * 0.68}
+              stroke={accent} strokeWidth={s.mark * 0.034} strokeLinecap="round"
+            />
+          </g>
+        ) : (
+          // Static: needle drawn directly at 10pm position
+          <line
+            x1={c} y1={c}
+            x2={nx} y2={ny}
+            stroke={accent} strokeWidth={s.mark * 0.034} strokeLinecap="round"
+          />
+        )}
+
         {/* Centre dot */}
         <circle cx={c} cy={c} r={s.mark * 0.042} fill={accent} />
       </svg>
