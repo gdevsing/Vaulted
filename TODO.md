@@ -2,7 +2,21 @@
 
 ## Features & Improvements
 
-Nothing pending — all features shipped. ✓
+### Post-Deploy Cleanup
+- [ ] Clear `app_password_mock` from DB via SSH:
+  ```bash
+  sqlite3 /home/ubuntu/vaulted/vaulted.db "DELETE FROM settings WHERE key='app_password_mock';"
+  ```
+- [ ] Verify `scripts/smoke-test.js` is gone from main after PR merge
+
+### Near-Term Hardening
+- [ ] Next.js 14 → 16 upgrade (steps already in Maintenance section)
+- [ ] Audit all cron jobs — confirm none call `/api/*` internally now that API routes require auth
+
+### Nice to Have
+- [ ] DB backup restore — add Restore DB button in Admin panel to upload a `.db` backup file and hot-swap the live database (see feature branch `feature/db-restore-admin`)
+- [ ] DB backup restore test — verify the GitHub backup can actually be restored end-to-end
+- [ ] Add `/api/health` endpoint (no auth required) for uptime monitoring
 
 ---
 
@@ -46,6 +60,8 @@ Low risk for this app — none of the vulnerable features (rewrites, i18n, remot
 - [x] FX cron calls frankfurter.app directly (fixed 6am failure)
 - [x] Balance save error handling (no more fake SAVED ✓)
 - [x] Notification privacy fix (net worth removed from push message)
+- [x] Mock password removed from production
+- [x] smoke-test.js removed
 
 ---
 
