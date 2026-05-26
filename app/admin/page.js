@@ -913,7 +913,6 @@ function RestoreDbCard() {
 }
 
 // ─── Tab bar ──────────────────────────────────────────────────────────────
-────
 function TabBar({ active, onChange }) {
   const tabs = [
     { key:"accounts",    label:"Accounts",    icon:"⊞" },
