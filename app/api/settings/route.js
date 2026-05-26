@@ -7,7 +7,7 @@ import { NextResponse } from "next/server";
 import { getDb, initDb } from "@/lib/db";
 import { hashPassword, isBcryptHash } from "@/lib/password";
 
-const SECRET_KEYS = ["gemini_api_key", "ntfy_password", "gdrive_token", "app_password_mock"];
+const SECRET_KEYS = ["gemini_api_key", "ntfy_password", "gdrive_token"];
 
 export async function GET(request) {
   try {
@@ -45,7 +45,7 @@ export async function PATCH(request) {
 
       // Hash new passwords before storing
       let storedValue = String(value);
-      if ((key === "app_password" || key === "app_password_mock") && value && !isBcryptHash(value)) {
+      if (key === "app_password" && value && !isBcryptHash(value)) {
         storedValue = await hashPassword(value);
       }
 
