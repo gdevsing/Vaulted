@@ -279,7 +279,7 @@ Also add `secure: true` so the cookie is only sent over HTTPS.
 
 ---
 
-### Fix 3 — Protect API routes from unauthenticated access
+### Fix 3 — Protect API routes from unauthenticated access ✅ DONE
 
 Currently `middleware.js` exempts all `/api/*` routes, meaning anyone
 can call `/api/accounts`, `/api/networth` etc without a session cookie.
