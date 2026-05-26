@@ -189,13 +189,14 @@ All features built and deployed at https://your-domain.com
 - ✅ Cron job manual trigger + status panel in Admin
 
 ### Pending
-- [ ] Security headers — add 6 headers to Nginx config (grade F → A, see TODO.md)
-- [ ] Rate limiting on /api/login — Nginx `limit_req_zone` (see TODO.md Fix 1)
+Nothing — all features and security hardening complete.
 
 ### Security — Completed ✅
 - ✅ bcrypt password hashing — auto-migrates plaintext on first login (lib/password.js)
 - ✅ 7-day secure cookie expiry + HTTPS-only flag (app/api/login/route.js)
 - ✅ API routes protected — unauthenticated /api/* returns 401 (middleware.js)
+- ✅ Nginx rate limiting on /api/login — 5 attempts/min per IP (VPS)
+- ✅ Security headers — HSTS, CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy (VPS)
 
 ---
 

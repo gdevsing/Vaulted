@@ -142,7 +142,7 @@ jobs that need to call the app API.
 
 ---
 
-## Security Headers (Grade F → A)
+## Security Headers (Grade F → A) ✅ DONE
 
 Current score: **F** — all 6 security headers missing.
 Tested at: https://securityheaders.com/?q=vaulted.gdevsingh.com
@@ -222,7 +222,7 @@ Target grade: **A** or **A+**
 
 ## Security Hardening — Top 3 High Priority
 
-### Fix 1 — Rate limiting on login (Nginx)
+### Fix 1 — Rate limiting on login (Nginx) ✅ DONE
 
 Without this, anyone can hammer `/api/login` with unlimited password attempts.
 
