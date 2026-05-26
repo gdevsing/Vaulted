@@ -43,18 +43,18 @@ Live at: https://your-domain.com
 
 ## Accounts
 
-| Account       | Owner | Asset  | Currency | Frequency   |
-|---------------|-------|--------|----------|-------------|
-| Up Bank       | H     | Cash   | AUD      | Weekly      |
-| NAB Everyday  | H     | Cash   | AUD      | Weekly      |
-| ANZ Savings   | H     | Cash   | AUD      | Weekly      |
-| ING Orange    | H     | Cash   | AUD      | Weekly      |
-| Stake ASX     | H     | Shares | AUD      | Fortnightly |
-| Stake Wall St | H     | Shares | USD      | Fortnightly |
-| Spaceship     | H     | Shares | AUD      | Monthly     |
-| Swyftx        | H     | Crypto | AUD      | Weekly      |
-| Husband Super | H     | Super  | AUD      | Monthly     |
-| Wife Super    | W     | Super  | AUD      | Monthly     |
+| Account      | Owner | Asset  | Currency | Frequency   |
+|--------------|-------|--------|----------|-------------|
+| Cash 1       | H     | Cash   | AUD      | Weekly      |
+| Cash 2       | H     | Cash   | AUD      | Weekly      |
+| Cash 3       | H     | Cash   | AUD      | Weekly      |
+| Cash 4       | H     | Cash   | AUD      | Weekly      |
+| Shares 1     | H     | Shares | AUD      | Fortnightly |
+| Shares 2     | H     | Shares | USD      | Fortnightly |
+| Shares 3     | H     | Shares | AUD      | Monthly     |
+| Crypto 1     | H     | Crypto | AUD      | Weekly      |
+| Super 1      | H     | Super  | AUD      | Monthly     |
+| Super 2      | W     | Super  | AUD      | Monthly     |
 
 Owner types: H (Husband), W (Wife), J (Joint)
 
