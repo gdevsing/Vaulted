@@ -106,10 +106,12 @@ vaulted-cron (PM2 process)
 User visits any page
  └─ middleware.js checks for "vaulted_auth" cookie
      ├─ Cookie present  → allow through
+     │   └─ cookie = "mock" + /api/* path → return mock data (DB never touched)
      └─ Cookie missing  → redirect to /login
          └─ User enters password → POST /api/login
-             └─ Compared against app_password in SQLite
-                 ├─ Match   → set cookie → redirect to /dashboard
+             └─ Compared against app_password + app_password_mock in SQLite
+                 ├─ Real password match → cookie = "real" → /dashboard (real data)
+                 ├─ Mock password match → cookie = "mock" → /dashboard (fake data)
                  └─ No match → show error
 ```
 
