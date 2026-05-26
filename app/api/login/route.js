@@ -18,7 +18,7 @@ export async function POST(request) {
     // No password set — allow through
     if (!stored) {
       const res = NextResponse.json({ ok: true });
-      res.cookies.set("vaulted_auth", "1", { httpOnly: true, path: "/", sameSite: "lax" });
+      res.cookies.set("vaulted_auth", "1", { httpOnly: true, secure: true, path: "/", sameSite: "lax", maxAge: 60 * 60 * 24 * 7 });
       return res;
     }
 
@@ -29,7 +29,7 @@ export async function POST(request) {
     }
 
     const res = NextResponse.json({ ok: true });
-    res.cookies.set("vaulted_auth", "1", { httpOnly: true, path: "/", sameSite: "lax" });
+    res.cookies.set("vaulted_auth", "1", { httpOnly: true, secure: true, path: "/", sameSite: "lax", maxAge: 60 * 60 * 24 * 7 });
     return res;
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });

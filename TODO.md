@@ -260,7 +260,7 @@ sudo nginx -t && sudo systemctl reload nginx
 
 ---
 
-### Fix 2 — Session cookie expiry
+### Fix 2 — Session cookie expiry ✅ DONE
 
 Currently the `vaulted_auth` cookie lives forever. Add a 7 day expiry.
 
