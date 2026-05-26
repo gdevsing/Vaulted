@@ -223,7 +223,7 @@ export default function MilestonesPage() {
           <div className="label" style={{ marginBottom: 8 }}>Next Milestone</div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 10 }}>
             <div>
-              <div style={{ fontFamily: "var(--font-display)", fontSize: 32, color: "var(--ink)", lineHeight: 1, marginBottom: 4 }}>
+              <div style={{ fontFamily: "var(--font-display)", fontSize: 24, color: "var(--ink)", lineHeight: 1, marginBottom: 3 }}>
                 {loading ? "—" : <CountUp target={current} duration={1000} />}
               </div>
               <div style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontSize: 12, color: "var(--ink2)" }}>
