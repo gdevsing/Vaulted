@@ -46,7 +46,7 @@ function GoalBar({ goal, current, history }) {
 
   return (
     <div className="card lift fade-up" style={{
-      padding: "18px 20px",
+      padding: "12px 16px",
       borderLeft: `3px solid ${achieved ? "var(--positive)" : "var(--gold)"}`,
       background: achieved
         ? (theme === "dark" ? "rgba(125,214,138,0.05)" : "rgba(26,122,56,0.04)")
@@ -55,7 +55,7 @@ function GoalBar({ goal, current, history }) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
-            <div style={{ fontFamily: "var(--font-display)", fontSize: 16, color: "var(--ink)" }}>
+            <div style={{ fontFamily: "var(--font-display)", fontSize: 13, color: "var(--ink)" }}>
               {goal.name}
             </div>
             {achieved && (
@@ -74,7 +74,7 @@ function GoalBar({ goal, current, history }) {
           </div>
         </div>
         <div style={{ textAlign: "right" }}>
-          <div style={{ fontFamily: "var(--font-display)", fontSize: 20, color: achieved ? "var(--positive)" : "var(--gold)", lineHeight: 1 }}>
+          <div style={{ fontFamily: "var(--font-display)", fontSize: 16, color: achieved ? "var(--positive)" : "var(--gold)", lineHeight: 1 }}>
             {pct.toFixed(1)}%
           </div>
         </div>
@@ -93,17 +93,17 @@ function GoalBar({ goal, current, history }) {
       <div style={{ display: "flex", justifyContent: "space-between" }}>
         <div>
           <div className="label">Current</div>
-          <div style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--ink)", marginTop: 2 }}>{fmt(current)}</div>
+          <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--ink)", marginTop: 2 }}>{fmt(current)}</div>
         </div>
         {!achieved && remaining > 0 && (
           <div style={{ textAlign: "center" }}>
             <div className="label">Remaining</div>
-            <div style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--negative)", marginTop: 2 }}>{fmt(remaining)}</div>
+            <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--negative)", marginTop: 2 }}>{fmt(remaining)}</div>
           </div>
         )}
         <div style={{ textAlign: "right" }}>
           <div className="label">{achieved ? "Status" : "Est. arrival"}</div>
-          <div style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: achieved ? "var(--positive)" : "var(--ink2)", marginTop: 2 }}>
+          <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: achieved ? "var(--positive)" : "var(--ink2)", marginTop: 2 }}>
             {achieved ? "Done" : monthsLeft !== null ? (monthsLeft < 1 ? "This month" : `~${monthsLeft}mo`) : "—"}
           </div>
         </div>
@@ -205,7 +205,7 @@ export default function MilestonesPage() {
   const nextPct       = nextMilestone ? Math.min((current / nextMilestone) * 100, 100) : 100;
 
   return (
-    <AppShell><main className="page" style={{ paddingTop: 16, display: "flex", flexDirection: "column", gap: 18 }}>
+    <AppShell><main className="page" style={{ paddingTop: 16, display: "flex", flexDirection: "column", gap: 14 }}>
 
         <div className="fade-up">
           <div style={{ fontFamily: "var(--font-display)", fontSize: 20, color: "var(--ink)", marginBottom: 4 }}>Milestones</div>
@@ -214,16 +214,16 @@ export default function MilestonesPage() {
 
         {/* Hero — next milestone */}
         <div className="card card-glow fade-up" style={{
-          padding: "22px 20px",
+          padding: "16px 16px",
           background: theme === "dark"
             ? "linear-gradient(135deg, rgba(255,210,80,0.07) 0%, rgba(255,255,255,0.02) 60%)"
             : "linear-gradient(135deg, rgba(180,120,0,0.06) 0%, rgba(26,22,20,0.02) 60%)",
           borderColor: "rgba(255,210,74,0.2)",
         }}>
-          <div className="label" style={{ marginBottom: 10 }}>Next Milestone</div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 14 }}>
+          <div className="label" style={{ marginBottom: 8 }}>Next Milestone</div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 10 }}>
             <div>
-              <div style={{ fontFamily: "var(--font-display)", fontSize: 32, color: "var(--ink)", lineHeight: 1, marginBottom: 4 }}>
+              <div style={{ fontFamily: "var(--font-display)", fontSize: 24, color: "var(--ink)", lineHeight: 1, marginBottom: 3 }}>
                 {loading ? "—" : <CountUp target={current} duration={1000} />}
               </div>
               <div style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontSize: 12, color: "var(--ink2)" }}>
@@ -231,7 +231,7 @@ export default function MilestonesPage() {
               </div>
             </div>
             <div style={{ textAlign: "right" }}>
-              <div style={{ fontFamily: "var(--font-display)", fontSize: 28, color: "var(--gold)", lineHeight: 1 }}>
+              <div style={{ fontFamily: "var(--font-display)", fontSize: 20, color: "var(--gold)", lineHeight: 1 }}>
                 {nextPct.toFixed(1)}%
               </div>
               <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--ink2)", marginTop: 3, letterSpacing: "0.08em" }}>
@@ -247,7 +247,7 @@ export default function MilestonesPage() {
         {/* Goals */}
         <div>
           <div className="label" style={{ marginBottom: 10 }}>Goals</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {GOALS.map(goal => (
               <GoalBar key={goal.id} goal={goal} current={current} history={history} />
             ))}

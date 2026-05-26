@@ -75,12 +75,12 @@ function CustomTooltip({ active, payload, label, theme }) {
 
 function StatPill({ label, value, sub, color }) {
   return (
-    <div className="card" style={{ padding: "12px 14px", flex: 1 }}>
-      <div className="label" style={{ marginBottom: 5 }}>{label}</div>
-      <div style={{ fontFamily: "var(--font-display)", fontSize: 17, color: color || "var(--ink)", lineHeight: 1, marginBottom: sub ? 3 : 0 }}>
+    <div className="card" style={{ padding: "9px 11px", flex: 1 }}>
+      <div className="label" style={{ marginBottom: 3, fontSize: 8 }}>{label}</div>
+      <div style={{ fontFamily: "var(--font-display)", fontSize: 13, color: color || "var(--ink)", lineHeight: 1, marginBottom: sub ? 2 : 0 }}>
         {value}
       </div>
-      {sub && <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--ink2)" }}>{sub}</div>}
+      {sub && <div style={{ fontFamily: "var(--font-mono)", fontSize: 8, color: "var(--ink2)" }}>{sub}</div>}
     </div>
   );
 }
@@ -120,13 +120,13 @@ export default function TrendsPage() {
 
   const first   = sliced[0]?.value || 0;
   const last    = sliced[sliced.length - 1]?.value || 0;
-  const gain    = last - first;
+  const gain    = Math.round((last - first) * 100) / 100;
   const gainPct = first > 0 ? ((gain / first) * 100) : 0;
   const peak    = sliced.length ? Math.max(...sliced.map(d => d.value)) : 0;
   const isUp    = gain >= 0;
 
   const prev       = sliced[sliced.length - 2]?.value || last;
-  const weekChange = last - prev;
+  const weekChange = Math.round((last - prev) * 100) / 100;
   const weekPct    = prev > 0 ? ((weekChange / prev) * 100) : 0;
 
   const cashColor   = ASSETS.cash[theme];
@@ -162,7 +162,7 @@ export default function TrendsPage() {
               <TimeFilter active={filter} onChange={setFilter} />
             </div>
 
-            <div className="fade-up fade-up-1" style={{ display: "flex", gap: 8 }}>
+            <div className="fade-up fade-up-1" style={{ display: "flex", gap: 6 }}>
               <StatPill label="Net Worth" value={fmtShort(last)} sub={`Peak: ${fmtShort(peak)}`} />
               <StatPill
                 label={isUp ? "Total Gain" : "Total Loss"}
