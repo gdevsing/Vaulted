@@ -371,3 +371,26 @@ external services directly before applying this fix.
 
 Note: ntfy.sh notifications work via the ntfy app — not browser push.
 This is fine and already configured.
+
+---
+
+## Deploy Pipeline Flow
+
+```
+Push to main
+  └─ GitHub Actions triggers
+      ├─ Save current commit hash (for rollback)
+      ├─ git pull + npm install + npm build
+      ├─ Pre-restart smoke tests (against old running app)
+      │   └─ FAIL → revert build + notify via ntfy + exit 1
+      ├─ pm2 restart vaulted vaulted-cron
+      ├─ Wait 8 seconds
+      ├─ Post-restart smoke tests (against new running app)
+      │   └─ FAIL → git checkout prev commit + rebuild + restart + notify via ntfy + exit 1
+      └─ SUCCESS → notify via ntfy "Deploy successful. Commit abc1234 live."
+```
+
+You receive an ntfy notification for:
+- ✅ Successful deploy (default priority)
+- ⚠ Deploy aborted — smoke tests failed before restart (high priority)
+- 🔄 Deploy failed + rolled back (high priority)

@@ -10,33 +10,90 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy and smoke test
+      - name: Deploy with auto-rollback
         uses: appleboy/ssh-action@v1.0.3
         with:
           host:     ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key:      ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            set -e
             cd /home/ubuntu/vaulted
 
-            echo "── Pulling latest code ──"
-            git pull origin main
+            # ── Save current state for rollback ──────────────────────────
+            PREV_COMMIT=$(git rev-parse HEAD)
+            echo "Current commit: $PREV_COMMIT"
 
+            notify() {
+              TOPIC=$(sqlite3 vaulted.db "SELECT value FROM settings WHERE key='ntfy_topic';" 2>/dev/null || echo "")
+              SERVER=$(sqlite3 vaulted.db "SELECT value FROM settings WHERE key='ntfy_server';" 2>/dev/null || echo "https://ntfy.sh")
+              PUBLIC_URL=$(sqlite3 vaulted.db "SELECT value FROM settings WHERE key='app_public_url';" 2>/dev/null || echo "")
+              if [ -n "$TOPIC" ]; then
+                HEADERS="-H 'Title: $1' -H 'Tags: $2' -H 'Priority: $3'"
+                if [ -n "$PUBLIC_URL" ]; then
+                  HEADERS="$HEADERS -H 'Click: $PUBLIC_URL'"
+                fi
+                curl -s -X POST "$SERVER/$TOPIC" \
+                  -H "Title: $1" \
+                  -H "Tags: $2" \
+                  -H "Priority: $3" \
+                  -d "$4" > /dev/null 2>&1 || true
+              fi
+            }
+
+            rollback() {
+              echo "⚠ Rolling back to $PREV_COMMIT..."
+              git checkout $PREV_COMMIT
+              npm run build --silent
+              pm2 restart vaulted vaulted-cron
+              pm2 save
+              notify "Vaulted deploy failed — rolled back" "warning,rotating_light" "high" "Deploy failed. Rolled back to previous version. Check GitHub Actions for details."
+              echo "✗ Rollback complete"
+              exit 1
+            }
+
+            # ── Pull latest ───────────────────────────────────────────────
+            echo "── Pulling latest code ──"
+            git pull origin main || { echo "git pull failed"; rollback; }
+
+            NEW_COMMIT=$(git rev-parse HEAD)
+            echo "New commit: $NEW_COMMIT"
+
+            # If nothing changed, skip
+            if [ "$PREV_COMMIT" = "$NEW_COMMIT" ]; then
+              echo "Nothing to deploy — already up to date"
+              exit 0
+            fi
+
+            # ── Install + Build ───────────────────────────────────────────
             echo "── Installing dependencies ──"
-            npm install --production
+            npm install --production || rollback
 
             echo "── Building ──"
-            npm run build
+            npm run build || rollback
 
+            # ── Pre-restart smoke test (against current running app) ──────
+            echo "── Pre-restart smoke test ──"
+            node scripts/smoke-test.js http://localhost:3000 || {
+              echo "Pre-restart smoke tests failed — aborting deploy"
+              git checkout $PREV_COMMIT
+              npm run build --silent
+              notify "Vaulted deploy aborted" "x,warning" "high" "New build failed smoke tests. Previous version kept running."
+              exit 1
+            }
+
+            # ── Restart services ──────────────────────────────────────────
             echo "── Restarting services ──"
             pm2 restart vaulted vaulted-cron
             pm2 save
 
+            # ── Post-restart smoke test ───────────────────────────────────
             echo "── Waiting for app to be ready ──"
             sleep 8
 
-            echo "── Running smoke tests ──"
-            node scripts/smoke-test.js http://localhost:3000
+            echo "── Post-restart smoke test ──"
+            node scripts/smoke-test.js http://localhost:3000 || rollback
 
-            echo "✅ Deploy complete at $(date)"
+            # ── Success ───────────────────────────────────────────────────
+            SHORT=$(echo $NEW_COMMIT | cut -c1-7)
+            notify "Vaulted deployed ✓" "white_check_mark" "default" "Deploy successful. Commit $SHORT is live."
+            echo "✅ Deploy complete — commit $SHORT live at $(date)"

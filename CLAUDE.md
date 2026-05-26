@@ -183,6 +183,7 @@ All features built and deployed at https://your-domain.com
 - ✅ PWA — manifest.json, icons, Android + iOS meta tags
 - ✅ Splash screen — Option A (2 spins → bounce lock)
 - ✅ Smoke tests run on every deploy via CI/CD
+- ✅ Auto-rollback on deploy failure with ntfy notification
 - ✅ Rotating finance quotes on login with fade-in animation
 - ✅ MIT licence + © 2026 Gurdev Singh footer
 - ✅ Stale state fix — cache: no-store on all GET fetches
