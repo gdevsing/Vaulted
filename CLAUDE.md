@@ -8,8 +8,9 @@ Read this at the start of every session.
 ## ⚠️ Working Rules
 
 1. **Never push code without approval.** Always explain what you plan to change and why, then wait for the go-ahead before implementing or pushing anything.
-2. **Never implement without discussing first.** Diagnose and propose — then wait.
-3. **After every code change, check all docs.** Before committing, review README.md, DEPLOY.md, ARCHITECTURE.md, TODO.md and CLAUDE.md. Update any that are stale, incorrect or missing context about the change. This is mandatory — not optional.
+2. **Never commit code to main.** Never ever commit code to the main branch.
+3. **Never implement without discussing first.** Diagnose and propose — then wait.
+4. **After every code change, check all docs.** Before committing, review README.md, DEPLOY.md, ARCHITECTURE.md, TODO.md and CLAUDE.md. Update any that are stale, incorrect or missing context about the change. This is mandatory — not optional.
 
 ---
 
