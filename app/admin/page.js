@@ -50,8 +50,9 @@ const CREDENTIAL_GROUPS = [
     link: "https://github.com/settings/tokens/new?scopes=repo&description=Vaulted+Backup",
     linkLabel: "Create token →",
     fields: [
-      { key: "github_token", label: "Personal Access Token", secret: true,  placeholder: "ghp_..." },
-      { key: "github_repo",  label: "Repository",            secret: false, placeholder: "username/vaulted-backup" },
+      { key: "github_token",    label: "Personal Access Token", secret: true,  placeholder: "ghp_..." },
+      { key: "github_repo",     label: "Repository",            secret: false, placeholder: "username/vaulted-backup" },
+      { key: "backup_filename", label: "Backup filename",       secret: false, placeholder: "vaulted-backup.db" },
     ],
   },
   {
@@ -632,6 +633,71 @@ function NotifyStatusCard() {
 }
 
 
+// ─── Backup source info ──────────────────────────────────────────────────────
+function BackupSourceInfo({ repoInfo, status }) {
+  const [lastBackup, setLastBackup] = useState(null);
+
+  useEffect(() => {
+    if (!repoInfo?.repo || !repoInfo?.token) return;
+    fetch(
+      `https://api.github.com/repos/${repoInfo.repo}/commits?path=${repoInfo.file}&per_page=1`,
+      { headers: { Authorization: `token ${repoInfo.token}` } }
+    )
+      .then(r => r.json())
+      .then(commits => {
+        if (commits?.[0]) {
+          const msg = commits[0].commit?.message || "";
+          const date = commits[0].commit?.author?.date;
+          const label = msg.startsWith("backup:") ? msg.replace("backup:", "").trim()
+            : date ? date.slice(0, 10) : null;
+          setLastBackup(label);
+        }
+      })
+      .catch(() => {});
+  }, [repoInfo]);
+
+  if (status === "loading") {
+    return (
+      <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--ink2)",
+        letterSpacing: "0.06em", marginBottom: 14 }}>Loading config...</div>
+    );
+  }
+  if (!repoInfo?.repo) {
+    return (
+      <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--negative)",
+        letterSpacing: "0.06em", padding: "10px 14px", marginBottom: 14,
+        background: "rgba(232,112,112,0.08)", border: "1px solid rgba(232,112,112,0.2)",
+        borderRadius: "2px 7px 7px 2px" }}>
+        ⚠ No GitHub repo configured — set it in GitHub Backup above
+      </div>
+    );
+  }
+  return (
+    <div style={{ padding: "10px 14px", marginBottom: 14,
+      background: "rgba(255,255,255,0.03)", border: "1px solid var(--border-strong)",
+      borderRadius: "2px 9px 9px 2px" }}>
+      <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--ink2)",
+        letterSpacing: "0.06em", marginBottom: 4 }}>SOURCE</div>
+      <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--gold)" }}>
+        {repoInfo.repo}
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 4 }}>
+        <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--ink2)" }}>
+          /{repoInfo.file}
+          {!repoInfo.hasToken && (
+            <span style={{ color: "var(--negative)", marginLeft: 8 }}>⚠ No token configured</span>
+          )}
+        </div>
+        {lastBackup && (
+          <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--ink2)" }}>
+            Last backup: <span style={{ color: "var(--positive)" }}>{lastBackup}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── DB Restore card ──────────────────────────────────────────────────────────
 function RestoreDbCard() {
   const [mode,      setMode]     = useState("github"); // "github" | "upload"
@@ -653,6 +719,7 @@ function RestoreDbCard() {
           repo: settings.github_repo || "",
           file: settings.backup_filename || "vaulted-backup.db",
           hasToken: !!settings.github_token,
+          token: settings.github_token || "",
         });
         setStatus(null);
       })
@@ -768,28 +835,7 @@ function RestoreDbCard() {
 
       {/* GitHub mode */}
       {mode === "github" && (
-        <div style={{ marginBottom: 14 }}>
-          {status === "loading" ? (
-            <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--ink2)", letterSpacing: "0.06em" }}>Loading config...</div>
-          ) : repoInfo?.repo ? (
-            <div style={{ padding: "10px 14px", background: "rgba(255,255,255,0.03)", border: "1px solid var(--border-strong)", borderRadius: "2px 9px 9px 2px" }}>
-              <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--ink2)", letterSpacing: "0.06em", marginBottom: 4 }}>SOURCE</div>
-              <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--gold)" }}>
-                {repoInfo.repo}
-              </div>
-              <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--ink2)", marginTop: 3 }}>
-                /{repoInfo.file}
-                {!repoInfo.hasToken && (
-                  <span style={{ color: "var(--negative)", marginLeft: 8 }}>⚠ No GitHub token configured</span>
-                )}
-              </div>
-            </div>
-          ) : (
-            <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--negative)", letterSpacing: "0.06em", padding: "10px 14px", background: "rgba(232,112,112,0.08)", border: "1px solid rgba(232,112,112,0.2)", borderRadius: "2px 7px 7px 2px" }}>
-              ⚠ No GitHub repo configured — set it in GitHub Backup section above
-            </div>
-          )}
-        </div>
+        <BackupSourceInfo repoInfo={repoInfo} status={status} />
       )}
 
       {/* Upload mode */}
