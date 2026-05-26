@@ -90,7 +90,7 @@ function GoalBar({ goal, current, history }) {
         </div>
       </div>
 
-      <div style={{ display: "flex", justifyContent: "space-between" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 4, overflow: "hidden" }}>
         <div>
           <div className="label">Current</div>
           <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--ink)", marginTop: 2 }}>{fmt(current)}</div>
@@ -114,14 +114,14 @@ function GoalBar({ goal, current, history }) {
 
 // ─── Projection card ──────────────────────────────────────────────────────────
 function ProjectionCard({ label, value, current, delay }) {
-  const gain    = value - current;
+  const gain    = Math.round((value - current) * 100) / 100;
   const gainPct = ((gain / current) * 100).toFixed(0);
   const isUp    = gain >= 0;
 
   return (
-    <div className={`card lift fade-up fade-up-${delay}`} style={{ padding: "14px 16px", flex: 1, borderLeft: "3px solid var(--ink3)" }}>
-      <div className="label" style={{ marginBottom: 6 }}>{label}</div>
-      <div style={{ fontFamily: "var(--font-display)", fontSize: 18, color: "var(--ink)", lineHeight: 1, marginBottom: 4 }}>
+    <div className={`card lift fade-up fade-up-${delay}`} style={{ padding: "10px 12px", flex: 1, minWidth: 0, overflow: "hidden", borderLeft: "3px solid var(--ink3)" }}>
+      <div className="label" style={{ marginBottom: 4, fontSize: 8 }}>{label}</div>
+      <div style={{ fontFamily: "var(--font-display)", fontSize: 15, color: "var(--ink)", lineHeight: 1, marginBottom: 3 }}>
         {fmtShort(value)}
       </div>
       <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: isUp ? "var(--positive)" : "var(--negative)" }}>
@@ -234,7 +234,7 @@ export default function MilestonesPage() {
               <div style={{ fontFamily: "var(--font-display)", fontSize: 20, color: "var(--gold)", lineHeight: 1 }}>
                 {nextPct.toFixed(1)}%
               </div>
-              <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--ink2)", marginTop: 3, letterSpacing: "0.08em" }}>
+              <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--ink2)", marginTop: 3, letterSpacing: "0.08em", whiteSpace: "nowrap" }}>
                 {fmt(nextMilestone - current)} to go
               </div>
             </div>
@@ -261,10 +261,10 @@ export default function MilestonesPage() {
               <div className="label">Projections</div>
               <div style={{ fontFamily: "var(--font-mono)", fontSize: 8, color: "var(--ink2)", letterSpacing: "0.08em" }}>based on avg weekly growth</div>
             </div>
-            <div style={{ display: "flex", gap: 8 }}>
-              <ProjectionCard label="6 months" value={projections["6mo"]} current={current} delay={1} />
-              <ProjectionCard label="1 year"   value={projections["1yr"]} current={current} delay={2} />
-              <ProjectionCard label="3 years"  value={projections["3yr"]} current={current} delay={3} />
+            <div style={{ display: "flex", gap: 6, overflow: "hidden" }}>
+              <ProjectionCard label="6mo" value={projections["6mo"]} current={current} delay={1} />
+              <ProjectionCard label="1yr" value={projections["1yr"]} current={current} delay={2} />
+              <ProjectionCard label="3yr" value={projections["3yr"]} current={current} delay={3} />
             </div>
             <div style={{ fontFamily: "var(--font-mono)", fontSize: 8, color: "var(--ink2)", marginTop: 8, letterSpacing: "0.06em" }}>
               * projections assume consistent growth and are not financial advice
