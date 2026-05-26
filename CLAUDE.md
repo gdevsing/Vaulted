@@ -189,7 +189,14 @@ All features built and deployed at https://your-domain.com
 - ✅ Cron job manual trigger + status panel in Admin
 
 ### Pending
-- [ ] Auth hardening with bcrypt (current: plaintext compare against DB)
+Nothing — all features and security hardening complete.
+
+### Security — Completed ✅
+- ✅ bcrypt password hashing — auto-migrates plaintext on first login (lib/password.js)
+- ✅ 7-day secure cookie expiry + HTTPS-only flag (app/api/login/route.js)
+- ✅ API routes protected — unauthenticated /api/* returns 401 (middleware.js)
+- ✅ Nginx rate limiting on /api/login — 5 attempts/min per IP (VPS)
+- ✅ Security headers — HSTS, CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy (VPS)
 
 ---
 

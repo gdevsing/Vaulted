@@ -142,7 +142,7 @@ jobs that need to call the app API.
 
 ---
 
-## Security Headers (Grade F → A)
+## Security Headers (Grade F → A) ✅ DONE
 
 Current score: **F** — all 6 security headers missing.
 Tested at: https://securityheaders.com/?q=vaulted.gdevsingh.com
@@ -222,7 +222,7 @@ Target grade: **A** or **A+**
 
 ## Security Hardening — Top 3 High Priority
 
-### Fix 1 — Rate limiting on login (Nginx)
+### Fix 1 — Rate limiting on login (Nginx) ✅ DONE
 
 Without this, anyone can hammer `/api/login` with unlimited password attempts.
 
@@ -260,7 +260,7 @@ sudo nginx -t && sudo systemctl reload nginx
 
 ---
 
-### Fix 2 — Session cookie expiry
+### Fix 2 — Session cookie expiry ✅ DONE
 
 Currently the `vaulted_auth` cookie lives forever. Add a 7 day expiry.
 
@@ -279,7 +279,7 @@ Also add `secure: true` so the cookie is only sent over HTTPS.
 
 ---
 
-### Fix 3 — Protect API routes from unauthenticated access
+### Fix 3 — Protect API routes from unauthenticated access ✅ DONE
 
 Currently `middleware.js` exempts all `/api/*` routes, meaning anyone
 can call `/api/accounts`, `/api/networth` etc without a session cookie.
