@@ -2,30 +2,31 @@
 
 ## Features & Improvements
 
-### Post-Deploy Cleanup
-- [x] Clear `app_password_mock` from DB via SSH
-- [x] Verify `scripts/smoke-test.js` is gone from main after PR merge
-
 ### Near-Term Hardening
-- [ ] Next.js 14 → 16 upgrade (steps already in Maintenance section)
+- [ ] Next.js 14 → 16 upgrade — **now more urgent** (May 6 2026 batch of 12 CVEs; no 14.x patches planned). See Maintenance section for steps. Low operational risk for Vaulted (no middleware routing, i18n, or SSRF surface) but no future patches on 14.x.
 - [ ] Audit all cron jobs — confirm none call `/api/*` internally now that API routes require auth
 
 ### Nice to Have
-- [x] DB restore end-to-end test — verified restore works with real backup
 - [ ] Add `/api/health` endpoint (no auth required) for uptime monitoring
+- [ ] Biometric lock (WebAuthn) — Face ID / fingerprint to lock app without ending session. Works on Android PWA (Chrome) and iOS PWA (Safari, iOS 16+). Falls back to app password after 3 failed attempts.
+- [ ] `backup_filename` consistency — cron `backupDb()` hardcodes `"vaulted-backup.db"` instead of reading `backup_filename` from DB settings like the restore endpoint does. Change the filename in Admin and the restore/backup would be out of sync.
 
 ### Shipped ✓
 - [x] DB restore in Admin — GitHub backup pull (reads repo/token/filename from settings dynamically) + manual `.db` upload fallback (PR #78)
+- [x] Trends + Goals page sizing — fonts and padding reduced to match dashboard density, float precision bug fixed (PR #83)
+- [x] Mobile nav sticky — `.page` padding split into individual properties so inline `paddingTop` can no longer clobber `padding-bottom`; bottom nav `width: 100%` + `overflow: hidden` (PR #86)
+- [x] Goals page horizontal overflow + zoom — projection cards `minWidth: 0`, GoalBar overflow contained, float precision fixed (PR #87)
+- [x] Logo needle standardised to 10pm — static needle at correct coords, animated version wraps in `<g>` to avoid angle compounding, splash replaced rAF/setState loop with pure CSS animation (PR #89 + hotfix #90)
+- [x] Post-deploy cleanup — `app_password_mock` cleared, `smoke-test.js` removed
 
 ---
 
 ## Maintenance
 
 ### Next.js 14 → 16 Upgrade
-Current: `next@14.2.35` — contains 2 vulnerabilities (1 moderate, 1 high).
-Fix requires upgrading to Next.js 16 (`npm audit fix --force`), which is a breaking change.
+Current: `next@14.2.35` — **no longer receiving security patches**. On May 6 2026, 12 new CVEs were disclosed (middleware bypass, XSS, SSRF, cache poisoning, DoS). Patches landed in 15.5.18+ and 16.2.6+. The 14.x line will not be patched.
 
-Low risk for this app — none of the vulnerable features (rewrites, i18n, remote image sources, WebSocket, CDN cache) are in use. No immediate action needed.
+Operational risk for Vaulted is low (no middleware routing, i18n, rewrites, or image optimisation in use) but staying on 14.x means no future security fixes. Recommended upgrade path: 14.x → 15.x first, then 16.x.
 
 **When ready:**
 1. Create a branch `chore/nextjs-16-upgrade`
