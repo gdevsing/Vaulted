@@ -180,6 +180,9 @@ All features built and deployed at https://your-domain.com
 - ✅ Logo animation on login
 - ✅ Oracle Cloud deployment (PM2 + Nginx + Let's Encrypt)
 - ✅ CI/CD via GitHub Actions (secrets configured, auto-deploys on merge)
+- ✅ PWA — manifest.json, icons, Android + iOS meta tags
+- ✅ Splash screen — Option A (2 spins → bounce lock)
+- ✅ Smoke tests run on every deploy via CI/CD
 - ✅ Rotating finance quotes on login with fade-in animation
 - ✅ MIT licence + © 2026 Gurdev Singh footer
 - ✅ Stale state fix — cache: no-store on all GET fetches

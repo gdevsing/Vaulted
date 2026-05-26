@@ -351,3 +351,23 @@ Note: after this change, the cron job calling `/api/notify` internally
 will also be blocked. This is fine since we already fixed the cron to
 call ntfy.sh directly (no API hop needed). Verify all cron jobs call
 external services directly before applying this fix.
+
+---
+
+## PWA Install Instructions
+
+### Android (Chrome)
+1. Open Chrome → visit your app URL
+2. Chrome shows "Add to Home Screen" banner — tap it
+3. Or: tap ⋮ menu → "Install app"
+4. App icon appears on home screen, opens full screen
+
+### iOS (Safari only)
+1. Open Safari (not Chrome) → visit your app URL
+2. Tap the Share button (box with arrow at bottom)
+3. Tap "Add to Home Screen"
+4. Tap Add
+5. App icon appears on home screen, opens full screen
+
+Note: ntfy.sh notifications work via the ntfy app — not browser push.
+This is fine and already configured.
