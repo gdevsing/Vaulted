@@ -634,12 +634,30 @@ function NotifyStatusCard() {
 
 // ─── DB Restore card ──────────────────────────────────────────────────────────
 function RestoreDbCard() {
-  const [file,     setFile]     = useState(null);
-  const [status,   setStatus]   = useState(null); // null | "confirm" | "restoring" | "done" | "error"
-  const [message,  setMessage]  = useState("");
+  const [mode,      setMode]     = useState("github"); // "github" | "upload"
+  const [file,      setFile]     = useState(null);
+  const [status,    setStatus]   = useState(null); // null | "loading" | "restoring" | "done" | "error"
+  const [message,   setMessage]  = useState("");
+  const [repoInfo,  setRepoInfo] = useState(null); // { repo, file } from settings
   const [showModal, setShowModal] = useState(false);
   const [pwdError,  setPwdError]  = useState(false);
   const { theme } = useTheme();
+
+  // Load configured repo + filename from settings on mount
+  useEffect(() => {
+    setStatus("loading");
+    fetch("/api/settings")
+      .then(r => r.json())
+      .then(({ settings }) => {
+        setRepoInfo({
+          repo: settings.github_repo || "",
+          file: settings.backup_filename || "vaulted-backup.db",
+          hasToken: !!settings.github_token,
+        });
+        setStatus(null);
+      })
+      .catch(() => setStatus(null));
+  }, []);
 
   const handleFileChange = (e) => {
     const f = e.target.files?.[0];
@@ -654,8 +672,12 @@ function RestoreDbCard() {
     setMessage("");
   };
 
+  const canRestore = mode === "github"
+    ? repoInfo?.repo && repoInfo?.hasToken
+    : !!file;
+
   const handleRestoreClick = () => {
-    if (!file) return;
+    if (!canRestore) return;
     setPwdError(false);
     setShowModal(true);
   };
@@ -672,12 +694,22 @@ function RestoreDbCard() {
 
     setShowModal(false);
     setStatus("restoring");
-    setMessage("Uploading and restoring database...");
+    setMessage(mode === "github" ? "Fetching backup from GitHub..." : "Uploading and restoring...");
 
     try {
-      const form = new FormData();
-      form.append("db", file);
-      const r = await fetch("/api/admin/restore-db", { method: "POST", body: form });
+      let r;
+      if (mode === "github") {
+        r = await fetch("/api/admin/restore-db", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ source: "github" }),
+        });
+      } else {
+        const form = new FormData();
+        form.append("db", file);
+        r = await fetch("/api/admin/restore-db", { method: "POST", body: form });
+      }
+
       const data = await r.json();
       if (!r.ok || !data.ok) {
         setStatus("error");
@@ -693,33 +725,90 @@ function RestoreDbCard() {
     }
   };
 
-  const accentColor = status === "error" ? "var(--negative)" : status === "done" ? "var(--positive)" : "var(--border-strong)";
+  const borderColor = status === "error" ? "var(--negative)"
+    : status === "done" ? "var(--positive)"
+    : "var(--border-strong)";
 
   return (
-    <div className="card fade-up" style={{ padding: "18px 20px", borderLeft: `3px solid ${accentColor}` }}>
-      <div style={{ fontFamily: "var(--font-display)", fontSize: 14, color: "var(--ink)", marginBottom: 4 }}>
-        Restore Database
-      </div>
-      <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--ink2)", letterSpacing: "0.06em", marginBottom: 16 }}>
-        Upload a Monday backup <span style={{ color: "var(--gold)" }}>.db</span> file to replace the live database.
-        The app will restart automatically after restore.
+    <div className="card fade-up" style={{ padding: "18px 20px", borderLeft: `3px solid ${borderColor}` }}>
+
+      {/* Header */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: 16, color: "var(--gold)" }}>↺</span>
+            <span style={{ fontFamily: "var(--font-display)", fontSize: 14, color: "var(--ink)" }}>Restore Database</span>
+          </div>
+          <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--ink2)", letterSpacing: "0.06em" }}>
+            Replace the live database from a backup
+          </div>
+        </div>
       </div>
 
-      {/* File picker */}
-      <label style={{
-        display: "flex", alignItems: "center", gap: 10,
-        padding: "10px 14px", marginBottom: 12,
-        background: "rgba(255,255,255,0.03)",
-        border: `1px dashed ${file ? "var(--gold)" : "var(--border-strong)"}`,
-        borderRadius: "2px 9px 9px 2px",
-        cursor: "pointer",
-      }}>
-        <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: file ? "var(--gold)" : "var(--ink2)", letterSpacing: "0.08em", flex: 1 }}>
-          {file ? `✓  ${file.name}  (${(file.size / 1024).toFixed(0)} KB)` : "Choose .db file..."}
-        </span>
-        <input type="file" accept=".db" onChange={handleFileChange} style={{ display: "none" }} />
-        <span style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--ink2)", letterSpacing: "0.1em" }}>BROWSE</span>
-      </label>
+      {/* Mode toggle */}
+      <div style={{ display: "flex", gap: 4, background: "var(--ink3)", borderRadius: "2px 8px 8px 2px", padding: 3, marginBottom: 16, alignSelf: "flex-start" }}>
+        {[
+          { key: "github", label: "↓ GitHub Backup" },
+          { key: "upload", label: "↑ Upload File" },
+        ].map(({ key, label }) => (
+          <button key={key} onClick={() => { setMode(key); setStatus(null); setMessage(""); setFile(null); }}
+            className="btn-press"
+            style={{
+              fontFamily: "var(--font-mono)", fontSize: 9, letterSpacing: "0.08em",
+              padding: "5px 12px", borderRadius: "2px 6px 6px 2px", border: "none",
+              cursor: "pointer",
+              background: mode === key ? "var(--gold)" : "transparent",
+              color: mode === key ? "#0C0A08" : "var(--ink2)",
+              transition: "all 0.2s",
+            }}>
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* GitHub mode */}
+      {mode === "github" && (
+        <div style={{ marginBottom: 14 }}>
+          {status === "loading" ? (
+            <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--ink2)", letterSpacing: "0.06em" }}>Loading config...</div>
+          ) : repoInfo?.repo ? (
+            <div style={{ padding: "10px 14px", background: "rgba(255,255,255,0.03)", border: "1px solid var(--border-strong)", borderRadius: "2px 9px 9px 2px" }}>
+              <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--ink2)", letterSpacing: "0.06em", marginBottom: 4 }}>SOURCE</div>
+              <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--gold)" }}>
+                {repoInfo.repo}
+              </div>
+              <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--ink2)", marginTop: 3 }}>
+                /{repoInfo.file}
+                {!repoInfo.hasToken && (
+                  <span style={{ color: "var(--negative)", marginLeft: 8 }}>⚠ No GitHub token configured</span>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--negative)", letterSpacing: "0.06em", padding: "10px 14px", background: "rgba(232,112,112,0.08)", border: "1px solid rgba(232,112,112,0.2)", borderRadius: "2px 7px 7px 2px" }}>
+              ⚠ No GitHub repo configured — set it in GitHub Backup section above
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Upload mode */}
+      {mode === "upload" && (
+        <label style={{
+          display: "flex", alignItems: "center", gap: 10,
+          padding: "10px 14px", marginBottom: 14,
+          background: "rgba(255,255,255,0.03)",
+          border: `1px dashed ${file ? "var(--gold)" : "var(--border-strong)"}`,
+          borderRadius: "2px 9px 9px 2px",
+          cursor: "pointer",
+        }}>
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: file ? "var(--gold)" : "var(--ink2)", letterSpacing: "0.08em", flex: 1 }}>
+            {file ? `✓  ${file.name}  (${(file.size / 1024).toFixed(0)} KB)` : "Choose .db file..."}
+          </span>
+          <input type="file" accept=".db" onChange={handleFileChange} style={{ display: "none" }} />
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--ink2)", letterSpacing: "0.1em" }}>BROWSE</span>
+        </label>
+      )}
 
       {/* Status message */}
       {message && (
@@ -732,32 +821,33 @@ function RestoreDbCard() {
         </div>
       )}
 
-      {/* Warning */}
-      {file && status !== "done" && (
+      {/* Destructive warning */}
+      {canRestore && status !== "done" && status !== "restoring" && (
         <div style={{
           fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--negative)",
           letterSpacing: "0.06em", marginBottom: 14, lineHeight: 1.6,
           padding: "8px 12px", background: "rgba(232,112,112,0.08)",
           border: "1px solid rgba(232,112,112,0.2)", borderRadius: "2px 7px 7px 2px",
         }}>
-          ⚠ This will replace the live database and restart the app. A backup of the current DB is kept on disk.
+          ⚠ This replaces the live database and restarts the app. Current DB is saved as a timestamped .bak file on disk.
         </div>
       )}
 
       {/* Restore button */}
       <button
         onClick={handleRestoreClick}
-        disabled={!file || status === "restoring" || status === "done"}
+        disabled={!canRestore || status === "restoring" || status === "done" || status === "loading"}
         className="btn-press"
         style={{
           width: "100%", padding: "10px",
-          background: !file || status === "restoring" || status === "done"
+          background: !canRestore || status === "restoring" || status === "done" || status === "loading"
             ? "var(--ink3)"
             : "rgba(232,112,112,0.85)",
           border: "none", borderRadius: "2px 9px 9px 2px",
           fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.1em",
-          color: !file || status === "restoring" || status === "done" ? "var(--ink2)" : "#fff",
-          cursor: file && status !== "restoring" && status !== "done" ? "pointer" : "not-allowed",
+          color: !canRestore || status === "restoring" || status === "done" || status === "loading"
+            ? "var(--ink2)" : "#fff",
+          cursor: canRestore && status !== "restoring" && status !== "done" ? "pointer" : "not-allowed",
           transition: "all 0.2s",
         }}
       >
@@ -776,7 +866,8 @@ function RestoreDbCard() {
   );
 }
 
-// ─── Tab bar ──────────────────────────────────────────────────────────────────
+// ─── Tab bar ──────────────────────────────────────────────────────────────
+────
 function TabBar({ active, onChange }) {
   const tabs = [
     { key:"accounts",    label:"Accounts",    icon:"⊞" },
