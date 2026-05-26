@@ -205,7 +205,7 @@ export default function MilestonesPage() {
   const nextPct       = nextMilestone ? Math.min((current / nextMilestone) * 100, 100) : 100;
 
   return (
-    <AppShell><main className="page" style={{ paddingTop: 16, display: "flex", flexDirection: "column", gap: 14 }}>
+    <AppShell><main className="page" style={{ paddingTop: 16, paddingBottom: "calc(72px + max(16px, env(safe-area-inset-bottom)))", display: "flex", flexDirection: "column", gap: 14 }}>
 
         <div className="fade-up">
           <div style={{ fontFamily: "var(--font-display)", fontSize: 20, color: "var(--ink)", marginBottom: 4 }}>Milestones</div>
