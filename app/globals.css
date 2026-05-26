@@ -74,6 +74,10 @@ body {
 
 @keyframes dialTurn {
   0%   { transform: rotate(0deg); }
+  70%  { transform: rotate(-75deg); }
+  85%  { transform: rotate(-52deg); }
+  100% { transform: rotate(-60deg); }
+}
   60%  { transform: rotate(-80deg); }
   80%  { transform: rotate(-52deg); }
   100% { transform: rotate(-60deg); }
