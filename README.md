@@ -51,6 +51,9 @@ USD accounts (e.g. Stake Wall St) store a native USD balance and an AUD-equivale
 **Admin and credentials**
 All API keys (Gemini, ntfy, GitHub) are stored in the DB and editable via the Admin panel. No environment files needed. Cron job status (last run, result) is visible in Admin. Any job can be triggered manually with a Run Now button.
 
+**Database restore**
+Restore the live database from the configured GitHub backup repo with one button tap in Admin — no SSH required. Shows the last backup date before you confirm. Falls back to manual `.db` file upload if needed. Current DB is kept as a timestamped backup on disk before any swap.
+
 ## Stack
 
 | Layer | Tech |
@@ -74,7 +77,7 @@ User → Nginx (SSL) → Next.js (:3000) → SQLite
                           ├── Google Gemini (AI vision)
                           ├── frankfurter.app (FX rates)
                           ├── ntfy.sh (notifications)
-                          └── GitHub private repo (backups)
+                          └── GitHub private repo (backups + restore)
 ```
 
 ## Getting started
@@ -102,7 +105,10 @@ app/
   trends/       # Charts and history
   milestones/   # Goals and achievements
   admin/        # Account + credential management
-  api/          # All backend API routes
+  api/
+    admin/
+      restore-db/  # DB restore endpoint (GitHub pull or manual upload)
+    ...           # All other backend API routes
 components/
   logo.jsx      # Dial mark + Audiowide wordmark
   nav.jsx       # Bottom navigation
@@ -136,6 +142,7 @@ lib/
 - [x] Gemini AI screenshot agent
 - [x] No Change tab on update page
 - [x] Update any account any time (not just when due)
+- [x] DB restore in Admin — GitHub backup pull + manual upload
 
 ## Design
 
