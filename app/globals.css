@@ -180,7 +180,10 @@ body {
 .page {
   max-width: 480px;
   margin: 0 auto;
-  padding: 16px 16px calc(72px + max(16px, env(safe-area-inset-bottom)));
+  padding-top: 16px;
+  padding-left: 16px;
+  padding-right: 16px;
+  padding-bottom: calc(72px + max(16px, env(safe-area-inset-bottom)));
   min-height: 100dvh;
 }
 
@@ -201,6 +204,9 @@ body {
 .bottom-nav {
   position: fixed;
   bottom: 0; left: 0; right: 0;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
   background: var(--bg);
   border-top: 1px solid var(--border);
   display: flex;
