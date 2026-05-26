@@ -109,9 +109,8 @@ User visits any page
      │   └─ cookie = "mock" + /api/* path → return mock data (DB never touched)
      └─ Cookie missing  → redirect to /login
          └─ User enters password → POST /api/login
-             └─ Compared against app_password + app_password_mock in SQLite
+             └─ Compared against app_password in SQLite
                  ├─ Real password match → cookie = "real" → /dashboard (real data)
-                 ├─ Mock password match → cookie = "mock" → /dashboard (fake data)
                  └─ No match → show error
 ```
 
