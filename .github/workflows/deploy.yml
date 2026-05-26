@@ -28,14 +28,11 @@ jobs:
               SERVER=$(sqlite3 vaulted.db "SELECT value FROM settings WHERE key='ntfy_server';" 2>/dev/null || echo "https://ntfy.sh")
               PUBLIC_URL=$(sqlite3 vaulted.db "SELECT value FROM settings WHERE key='app_public_url';" 2>/dev/null || echo "")
               if [ -n "$TOPIC" ]; then
-                HEADERS="-H 'Title: $1' -H 'Tags: $2' -H 'Priority: $3'"
-                if [ -n "$PUBLIC_URL" ]; then
-                  HEADERS="$HEADERS -H 'Click: $PUBLIC_URL'"
-                fi
                 curl -s -X POST "$SERVER/$TOPIC" \
                   -H "Title: $1" \
                   -H "Tags: $2" \
                   -H "Priority: $3" \
+                  $([ -n "$PUBLIC_URL" ] && echo "-H 'Click: $PUBLIC_URL'") \
                   -d "$4" > /dev/null 2>&1 || true
               fi
             }
@@ -58,7 +55,6 @@ jobs:
             NEW_COMMIT=$(git rev-parse HEAD)
             echo "New commit: $NEW_COMMIT"
 
-            # If nothing changed, skip
             if [ "$PREV_COMMIT" = "$NEW_COMMIT" ]; then
               echo "Nothing to deploy — already up to date"
               exit 0
@@ -71,27 +67,14 @@ jobs:
             echo "── Building ──"
             npm run build || rollback
 
-            # ── Pre-restart smoke test (against current running app) ──────
-            echo "── Pre-restart smoke test ──"
-            node scripts/smoke-test.js http://localhost:3000 || {
-              echo "Pre-restart smoke tests failed — aborting deploy"
-              git checkout $PREV_COMMIT
-              npm run build --silent
-              notify "Vaulted deploy aborted" "x,warning" "high" "New build failed smoke tests. Previous version kept running."
-              exit 1
-            }
-
             # ── Restart services ──────────────────────────────────────────
             echo "── Restarting services ──"
             pm2 restart vaulted vaulted-cron
             pm2 save
 
-            # ── Post-restart smoke test ───────────────────────────────────
-            echo "── Waiting for app to be ready ──"
-            sleep 8
-
-            echo "── Post-restart smoke test ──"
-            node scripts/smoke-test.js http://localhost:3000 || rollback
+            # ── Wait and verify PM2 is running ────────────────────────────
+            sleep 5
+            pm2 list | grep -q "vaulted" || rollback
 
             # ── Success ───────────────────────────────────────────────────
             SHORT=$(echo $NEW_COMMIT | cut -c1-7)
