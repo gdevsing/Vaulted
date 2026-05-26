@@ -18,11 +18,11 @@ export default function SplashScreen({ onComplete }) {
     const animate = (t) => {
       if (t < 0.8) {
         const ease = 1 - Math.pow(1 - t / 0.8, 2);
-        return { rot: -30 + ease * 750, locked: false };
+        return { rot: -30 + ease * 720, locked: false };
       }
       const bt = (t - 0.8) / 0.2;
       const bounce = Math.sin(bt * Math.PI * 3) * (1 - bt) * 18;
-      return { rot: 720 + bounce, locked: bt > 0.75 };
+      return { rot: 660 + bounce, locked: bt > 0.75 };
     };
 
     const tick = (ts) => {
