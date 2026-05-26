@@ -32,10 +32,10 @@ export default function Logo({ size = "default", showWordmark = true, className 
           x2={c} y2={c - r + s.mark * 0.1}
           stroke={fg} strokeWidth={s.mark * 0.026} strokeLinecap="round" strokeOpacity="0.45"
         />
-        {/* Needle */}
+        {/* Needle — rests at 10 o'clock (-60deg from 12) */}
         <line
           x1={c} y1={c}
-          x2={c} y2={c - r * 0.68}
+          x2={c - r * 0.588} y2={c - r * 0.34}
           stroke={accent} strokeWidth={s.mark * 0.034} strokeLinecap="round"
           style={animate ? {
             transformOrigin: `${c}px ${c}px`,
