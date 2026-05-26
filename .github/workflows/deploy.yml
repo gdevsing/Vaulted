@@ -18,8 +18,9 @@ jobs:
           key:      ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /home/ubuntu/vaulted
-            git pull origin main
-            npm install --production
+            git fetch origin main
+            git reset --hard origin/main
+            npm install
             npm run build
             pm2 restart vaulted vaulted-cron
             pm2 save
