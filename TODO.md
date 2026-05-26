@@ -351,3 +351,60 @@ Note: after this change, the cron job calling `/api/notify` internally
 will also be blocked. This is fine since we already fixed the cron to
 call ntfy.sh directly (no API hop needed). Verify all cron jobs call
 external services directly before applying this fix.
+
+---
+
+## PWA Install Instructions
+
+### Android (Chrome)
+1. Open Chrome → visit your app URL
+2. Chrome shows "Add to Home Screen" banner — tap it
+3. Or: tap ⋮ menu → "Install app"
+4. App icon appears on home screen, opens full screen
+
+### iOS (Safari only)
+1. Open Safari (not Chrome) → visit your app URL
+2. Tap the Share button (box with arrow at bottom)
+3. Tap "Add to Home Screen"
+4. Tap Add
+5. App icon appears on home screen, opens full screen
+
+Note: ntfy.sh notifications work via the ntfy app — not browser push.
+This is fine and already configured.
+
+---
+
+## VPS Prerequisites for CI/CD Pipeline
+
+Before the auto-rollback deploy pipeline works correctly, ensure these are installed on the VPS:
+
+```bash
+# sqlite3 CLI — needed to read ntfy settings from DB in deploy script
+sudo apt-get install -y sqlite3
+
+# Verify it works
+sqlite3 /home/ubuntu/vaulted/vaulted.db "SELECT value FROM settings WHERE key='ntfy_topic';"
+```
+
+---
+
+## Deploy Pipeline Flow
+
+```
+Push to main
+  └─ GitHub Actions triggers
+      ├─ Save current commit hash (for rollback)
+      ├─ git pull + npm install + npm build
+      ├─ Pre-restart smoke tests (against old running app)
+      │   └─ FAIL → revert build + notify via ntfy + exit 1
+      ├─ pm2 restart vaulted vaulted-cron
+      ├─ Wait 8 seconds
+      ├─ Post-restart smoke tests (against new running app)
+      │   └─ FAIL → git checkout prev commit + rebuild + restart + notify via ntfy + exit 1
+      └─ SUCCESS → notify via ntfy "Deploy successful. Commit abc1234 live."
+```
+
+You receive an ntfy notification for:
+- ✅ Successful deploy (default priority)
+- ⚠ Deploy aborted — smoke tests failed before restart (high priority)
+- 🔄 Deploy failed + rolled back (high priority)

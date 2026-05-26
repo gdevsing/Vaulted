@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import SplashScreen from "@/components/splash";
 import Nav, { HelpDrawer } from "@/components/nav";
 import TopBar from "@/components/top-bar";
 
@@ -8,9 +9,18 @@ import TopBar from "@/components/top-bar";
 // Handles nav + help drawer state in one place
 export default function AppShell({ children, topBarRight }) {
   const [helpOpen, setHelpOpen] = useState(false);
+  const [showSplash, setShowSplash] = useState(() => {
+    // Only show splash on first visit per session
+    if (typeof window === "undefined") return false;
+    const seen = sessionStorage.getItem("splash_shown");
+    if (seen) return false;
+    sessionStorage.setItem("splash_shown", "1");
+    return true;
+  });
 
   return (
     <>
+      {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
       <Nav onHelpOpen={() => setHelpOpen(true)} />
 
       {/* Mobile only top bar */}
