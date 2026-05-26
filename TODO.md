@@ -6,6 +6,24 @@ Nothing pending — all features shipped. ✓
 
 ---
 
+## Maintenance
+
+### Next.js 14 → 16 Upgrade
+Current: `next@14.2.35` — contains 2 vulnerabilities (1 moderate, 1 high).
+Fix requires upgrading to Next.js 16 (`npm audit fix --force`), which is a breaking change.
+
+Low risk for this app — none of the vulnerable features (rewrites, i18n, remote image sources, WebSocket, CDN cache) are in use. No immediate action needed.
+
+**When ready:**
+1. Create a branch `chore/nextjs-16-upgrade`
+2. Run `npm install next@latest react@latest react-dom@latest`
+3. Test all pages locally (`npm run dev`)
+4. Fix any breaking changes (App Router API changes, middleware changes)
+5. Run `npm run build` — confirm clean
+6. Deploy and verify prod
+
+---
+
 ## Production Setup — Completed ✓
 - [x] Oracle VM + SSH
 - [x] Node, PM2, Nginx installed
