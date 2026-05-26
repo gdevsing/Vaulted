@@ -1,56 +1,16 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 
 export default function SplashScreen({ onComplete }) {
-  const [rotation, setRotation]   = useState(-30);
-  const [locked, setLocked]       = useState(false);
-  const [textIn, setTextIn]       = useState(false);
-  const [fadeOut, setFadeOut]     = useState(false);
-  const frameRef = useRef();
+  const [textIn, setTextIn]   = useState(false);
+  const [fadeOut, setFadeOut] = useState(false);
 
   useEffect(() => {
-    // Option A: 2 full clockwise spins → snap + bounce lock
-    const DUR = 2200;
-    let start = null;
-    let cancelled = false;
-
-    const animate = (t) => {
-      if (t < 0.8) {
-        const ease = 1 - Math.pow(1 - t / 0.8, 2);
-        return { rot: -30 + ease * 720, locked: false };
-      }
-      const bt = (t - 0.8) / 0.2;
-      const bounce = Math.sin(bt * Math.PI * 3) * (1 - bt) * 18;
-      return { rot: 660 + bounce, locked: bt > 0.75 };
-    };
-
-    const tick = (ts) => {
-      if (cancelled) return;
-      if (!start) start = ts;
-      const t = Math.min((ts - start) / DUR, 1);
-      const { rot, locked: isLocked } = animate(t);
-      setRotation(rot);
-      setLocked(isLocked);
-      if ((ts - start) < DUR + 300) {
-        frameRef.current = requestAnimationFrame(tick);
-      }
-    };
-
-    // Start text after 400ms
     const t1 = setTimeout(() => setTextIn(true), 400);
-    // Start fade out
     const t2 = setTimeout(() => setFadeOut(true), 2800);
-    // Complete
     const t3 = setTimeout(() => onComplete?.(), 3300);
-
-    frameRef.current = requestAnimationFrame(tick);
-
-    return () => {
-      cancelled = true;
-      cancelAnimationFrame(frameRef.current);
-      clearTimeout(t1); clearTimeout(t2); clearTimeout(t3);
-    };
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, []);
 
   const size = 140;
@@ -88,13 +48,17 @@ export default function SplashScreen({ onComplete }) {
             stroke="#F0ECE8" strokeWidth={t.major ? size*0.023 : size*0.011}
             strokeLinecap="round" opacity={t.major ? 0.65 : 0.28}/>
         ))}
-        <g style={{ transformOrigin:`${c}px ${c}px`, transform:`rotate(${rotation}deg)` }}>
+        {/* Needle — CSS animation: 2 full spins landing at 10pm (-60deg) */}
+        <g style={{
+          transformOrigin: `${c}px ${c}px`,
+          animation: "splashDial 2.2s cubic-bezier(0.16,1,0.3,1) both",
+        }}>
           <line x1={c} y1={c+size*0.08} x2={c} y2={c-r*0.7}
             stroke="#FFD24A" strokeWidth={size*0.033} strokeLinecap="round"/>
           <line x1={c} y1={c} x2={c} y2={c+size*0.16}
             stroke="#FFD24A" strokeWidth={size*0.02} strokeLinecap="round" opacity={0.4}/>
         </g>
-        <circle cx={c} cy={c} r={size*0.055} fill={locked ? "#FFD24A" : "#F0ECE8"} style={{transition:"fill 0.3s"}}/>
+        <circle cx={c} cy={c} r={size*0.055} fill="#FFD24A" />
         <circle cx={c} cy={c} r={size*0.027} fill="#0C0A08"/>
       </svg>
 
@@ -119,6 +83,14 @@ export default function SplashScreen({ onComplete }) {
           your wealth, compounding quietly
         </div>
       </div>
+      <style>{`
+        @keyframes splashDial {
+          0%   { transform: rotate(-30deg); }
+          75%  { transform: rotate(675deg); }
+          88%  { transform: rotate(648deg); }
+          100% { transform: rotate(660deg); }
+        }
+      `}</style>
     </div>
   );
 }
