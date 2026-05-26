@@ -78,10 +78,6 @@ body {
   85%  { transform: rotate(-52deg); }
   100% { transform: rotate(-60deg); }
 }
-  60%  { transform: rotate(-80deg); }
-  80%  { transform: rotate(-52deg); }
-  100% { transform: rotate(-60deg); }
-}
 
 @keyframes revealFromLeft {
   from { clip-path: inset(0 100% 0 0); opacity: 0; }
