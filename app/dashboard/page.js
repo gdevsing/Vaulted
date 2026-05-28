@@ -6,7 +6,7 @@ import AccountCard from "@/components/account-card";
 import DonutChart from "@/components/charts/donut";
 import Sparkline from "@/components/charts/sparkline";
 import { useTheme } from "@/app/layout";
-import { fetchAccounts, fetchNetWorth, fetchNetWorthHistory, fetchFxRate } from "@/lib/api";
+import { fetchAccounts, fetchNetWorth, fetchNetWorthHistory, fetchFxRate, fetchOwners } from "@/lib/api";
 import { fmt, fmtShort, fmtPct } from "@/lib/utils";
 import { ASSETS } from "@/lib/tokens";
 
@@ -35,12 +35,10 @@ function AssetFilter({ active, onChange }) {
   );
 }
 
-function OwnerFilter({ active, onChange }) {
+function OwnerFilter({ active, onChange, owners }) {
   const options = [
     { key: "all", label: "COMBINED" },
-    { key: "H",   label: "HUSBAND"  },
-    { key: "W",   label: "WIFE"     },
-    { key: "J",   label: "JOINT"    },
+    ...owners.map(o => ({ key: o.key, label: o.label.toUpperCase() })),
   ];
   return (
     <div style={{ display: "flex", gap: 4, background: "var(--ink3)", borderRadius: "3px 10px 10px 3px", padding: 3 }}>
@@ -121,6 +119,7 @@ export default function DashboardPage() {
   const [accounts, setAccounts] = useState([]);
   const [networth, setNetworth] = useState(null);
   const [history, setHistory]   = useState([]);
+  const [owners, setOwners]     = useState([{ key: "H", label: "Husband" }, { key: "W", label: "Wife" }, { key: "J", label: "Joint" }]);
   const [loading, setLoading]   = useState(true);
   const { theme } = useTheme();
 
@@ -132,11 +131,12 @@ export default function DashboardPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [accs, nw, hist, { rate: usdRate }] = await Promise.all([
+      const [accs, nw, hist, { rate: usdRate }, ownerList] = await Promise.all([
         fetchAccounts(owner),
         fetchNetWorth(owner),
         fetchNetWorthHistory(owner),
         fetchFxRate("USD", "AUD"),
+        fetchOwners(),
       ]);
 
       // Override balance with live AUD conversion for non-AUD accounts
@@ -149,6 +149,7 @@ export default function DashboardPage() {
       setAccounts(enriched);
       setNetworth(nw);
       setHistory(hist);
+      if (ownerList?.length) setOwners(ownerList);
     } catch (e) {
       console.error(e);
     }
@@ -173,7 +174,7 @@ export default function DashboardPage() {
   return (
     <AppShell><main className="page" style={{ paddingTop: 16, display: "flex", flexDirection: "column", gap: 14 }}>
         <div className="fade-up" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-          <OwnerFilter active={owner} onChange={setOwner} />
+          <OwnerFilter active={owner} onChange={setOwner} owners={owners} />
           <AssetFilter active={assetFilter} onChange={handleAssetFilter} />
         </div>
 

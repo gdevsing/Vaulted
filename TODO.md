@@ -435,11 +435,6 @@ You receive an ntfy notification for:
 
 - [ ] **Account filtering — institution** *(Dashboard)* — filter by institution (deferred; owner + asset filters shipped)
 
-- [ ] **Configurable owner types** *(Admin)* — allow customising the H / W / J owner labels to suit any household (single person, couple, up to 3 owners)
-  - Store owner config in `settings` table (e.g. `owner_1_key`, `owner_1_label`, `owner_2_key`, etc.)
-  - Up to 3 owners; unused slots hidden from all filters and dropdowns
-  - Admin UI to set key (1–2 chars) and display label (e.g. "Partner", "Self", "Trust")
-  - Owner filter on dashboard and account forms read from settings at runtime
-  - Migration: existing H / W / J accounts unaffected — keys stay, only labels change
+- [x] **Configurable owner labels** *(Admin → Credentials)* — rename H / W / J to any name (e.g. "Jasmine", "Gurdev"); toggle each owner active/inactive to hide from filters and forms; DB keys stay unchanged so all historical data is unaffected
 
 - [x] **Monthly savings rate** *(Trends)* — "Monthly Avg" stat pill showing avg monthly savings from snapshot history, with ▲/▼ improving/slowing trend indicator vs prior period
