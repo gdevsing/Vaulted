@@ -81,16 +81,22 @@ function NetWorthHero({ total, history, filtered }) {
         {fmt(total)}
       </div>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: isUp ? "var(--positive)" : "var(--negative)", display: "flex", alignItems: "center", gap: 4 }}>
-            <span>{isUp ? "▲" : "▼"}</span>
-            <span>{fmt(Math.abs(change))} this week</span>
+        {filtered ? (
+          <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--ink2)", letterSpacing: "0.08em" }}>
+            FILTERED VIEW
           </div>
-          <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, padding: "2px 7px", borderRadius: "2px 6px 6px 2px", background: isUp ? "rgba(125,214,138,0.12)" : "rgba(232,112,112,0.12)", color: isUp ? "var(--positive)" : "var(--negative)" }}>
-            {fmtPct(changePct)}
+        ) : (
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: isUp ? "var(--positive)" : "var(--negative)", display: "flex", alignItems: "center", gap: 4 }}>
+              <span>{isUp ? "▲" : "▼"}</span>
+              <span>{fmt(Math.abs(change))} this week</span>
+            </div>
+            <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, padding: "2px 7px", borderRadius: "2px 6px 6px 2px", background: isUp ? "rgba(125,214,138,0.12)" : "rgba(232,112,112,0.12)", color: isUp ? "var(--positive)" : "var(--negative)" }}>
+              {fmtPct(changePct)}
+            </div>
           </div>
-        </div>
-        {history?.length > 1 && (
+        )}
+        {!filtered && history?.length > 1 && (
           <Sparkline data={history.map(h => ({ value: h.total || 0 }))} color={isUp ? "#7DD68A" : "#E87070"} height={36} width={90} />
         )}
       </div>
