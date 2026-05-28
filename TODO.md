@@ -431,13 +431,7 @@ You receive an ntfy notification for:
 
 ## Upcoming Features
 
-- [ ] **Forecast graph** *(Trends)* — project net worth forward as a dashed line from the last data point
-  - Calculate average weekly/monthly gain from snapshot history
-  - Extend chart timeline 12–24 months with projected values
-  - Render projection as dashed line in amber to differentiate from actual data
-  - Tooltip on hover showing projected value + date
-  - Optional: custom monthly savings rate override
-  - Feeds into the monthly savings rate card (see below)
+- [x] **Forecast graph** *(Trends)* — dashed amber projection line extending 52 weeks from the last data point, based on avg weekly growth; ACTUAL / FORECAST legend; tooltip shows "Forecast: $X" for projected points
 
 - [ ] **Account filtering — institution** *(Dashboard)* — filter by institution (deferred; owner + asset filters shipped)
 
