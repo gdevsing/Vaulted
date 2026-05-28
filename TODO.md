@@ -17,6 +17,7 @@
 - [x] Mobile nav sticky — `.page` padding split into individual properties so inline `paddingTop` can no longer clobber `padding-bottom`; bottom nav `width: 100%` + `overflow: hidden` (PR #86)
 - [x] Goals page horizontal overflow + zoom — projection cards `minWidth: 0`, GoalBar overflow contained, float precision fixed (PR #87)
 - [x] Logo needle standardised to 10pm — static needle at correct coords, animated version wraps in `<g>` to avoid angle compounding, splash replaced rAF/setState loop with pure CSS animation (PR #89 + hotfix #90)
+- [x] Asset type filter on dashboard — ALL / CASH / SHARES / CRYPTO / SUPER pills, client-side filtering of accounts + totals + donut, FILTERED badge on hero, localStorage persistence
 - [x] Post-deploy cleanup — `app_password_mock` cleared, `smoke-test.js` removed
 
 ---
@@ -438,12 +439,7 @@ You receive an ntfy notification for:
   - Optional: custom monthly savings rate override
   - Feeds into the monthly savings rate card (see below)
 
-- [ ] **Account filtering** *(Dashboard)* — filter which accounts are included in totals and breakdown
-  - Filter by owner (Husband / Wife / Joint)
-  - Filter by asset type (Cash / Shares / Crypto / Super)
-  - Filter by institution
-  - Persist filter state across sessions (settings table or localStorage)
-  - Show visual indicator when filters are active
+- [ ] **Account filtering — institution** *(Dashboard)* — filter by institution (deferred; owner + asset filters shipped)
 
 - [ ] **Monthly savings rate** *(Home or Trends)* — display average monthly savings from snapshot history
   - Calculate average monthly net worth increase over the last 3 months

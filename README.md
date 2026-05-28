@@ -34,7 +34,7 @@ Data never leaves your server. No subscriptions. No third party access to your a
 Open the app, tap through each account due for an update. Point the camera at a balance screen — Gemini AI reads the number automatically. Or type it manually. Confirm, move on. Takes under two minutes for ten accounts.
 
 **Net worth at a glance**
-The dashboard shows total household net worth, broken down by asset class (cash, shares, crypto, super) and by owner (husband, wife, joint). AUD-equivalent totals are calculated live using cached FX rates for USD accounts.
+The dashboard shows total household net worth, broken down by asset class (cash, shares, crypto, super) and by owner (husband, wife, joint). Filter by owner (Combined / Husband / Wife / Joint) or asset type (Cash / Shares / Crypto / Super) — totals and the donut chart update live. Filter state persists across sessions. AUD-equivalent totals are calculated live using cached FX rates for USD accounts.
 
 **Tracking over time**
 Trends page shows net worth history and per-account sparklines. Every time a balance is saved, a snapshot is recorded — so history builds up automatically over weeks and months.
