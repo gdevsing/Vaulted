@@ -129,6 +129,14 @@ export default function TrendsPage() {
   const weekChange = Math.round((last - prev) * 100) / 100;
   const weekPct    = prev > 0 ? ((weekChange / prev) * 100) : 0;
 
+  const weeklyDeltas   = sliced.slice(1).map((d, i) => d.value - sliced[i].value);
+  const avgWeekly      = weeklyDeltas.length > 0 ? weeklyDeltas.reduce((s, c) => s + c, 0) / weeklyDeltas.length : 0;
+  const monthlyRate    = Math.round(avgWeekly * (52 / 12));
+  const mid            = Math.floor(weeklyDeltas.length / 2);
+  const recentAvg      = weeklyDeltas.length > mid ? weeklyDeltas.slice(mid).reduce((s, c) => s + c, 0) / (weeklyDeltas.length - mid) : avgWeekly;
+  const earlierAvg     = mid > 0 ? weeklyDeltas.slice(0, mid).reduce((s, c) => s + c, 0) / mid : avgWeekly;
+  const savingsTrendUp = recentAvg >= earlierAvg;
+
   const cashColor   = ASSETS.cash[theme];
   const sharesColor = ASSETS.shares[theme];
   const cryptoColor = ASSETS.crypto[theme];
@@ -175,6 +183,12 @@ export default function TrendsPage() {
                 value={(weekChange >= 0 ? "+" : "") + fmtShort(Math.abs(weekChange))}
                 sub={fmtPct(weekPct)}
                 color={weekChange >= 0 ? "var(--positive)" : "var(--negative)"}
+              />
+              <StatPill
+                label="Monthly Avg"
+                value={(monthlyRate >= 0 ? "~" : "-~") + fmtShort(Math.abs(monthlyRate))}
+                sub={weeklyDeltas.length >= 4 ? (savingsTrendUp ? "▲ improving" : "▼ slowing") : "/ month"}
+                color={monthlyRate >= 0 ? "var(--positive)" : "var(--negative)"}
               />
             </div>
 
