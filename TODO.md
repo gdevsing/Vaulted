@@ -4,7 +4,7 @@
 
 ### Near-Term Hardening
 - [ ] Next.js 14 → 16 upgrade — **now more urgent** (May 6 2026 batch of 12 CVEs; no 14.x patches planned). See Maintenance section for steps. Low operational risk for Vaulted (no middleware routing, i18n, or SSRF surface) but no future patches on 14.x.
-- [ ] Audit all cron jobs — confirm none call `/api/*` internally now that API routes require auth
+- [x] Audit all cron jobs — confirmed none call `/api/*` internally (all 3 jobs call external services directly)
 
 ### Nice to Have
 - [ ] Add `/api/health` endpoint (no auth required) for uptime monitoring
@@ -17,6 +17,7 @@
 - [x] Mobile nav sticky — `.page` padding split into individual properties so inline `paddingTop` can no longer clobber `padding-bottom`; bottom nav `width: 100%` + `overflow: hidden` (PR #86)
 - [x] Goals page horizontal overflow + zoom — projection cards `minWidth: 0`, GoalBar overflow contained, float precision fixed (PR #87)
 - [x] Logo needle standardised to 10pm — static needle at correct coords, animated version wraps in `<g>` to avoid angle compounding, splash replaced rAF/setState loop with pure CSS animation (PR #89 + hotfix #90)
+- [x] Asset type filter on dashboard — ALL / CASH / SHARES / CRYPTO / SUPER pills, client-side filtering of accounts + totals + donut, FILTERED badge on hero, localStorage persistence
 - [x] Post-deploy cleanup — `app_password_mock` cleared, `smoke-test.js` removed
 
 ---
@@ -430,36 +431,19 @@ You receive an ntfy notification for:
 
 ## Upcoming Features
 
-### [ ] Forecast graph — future net worth projection
-**Page:** Trends
+- [ ] **Forecast graph** *(Trends)* — project net worth forward as a dashed line from the last data point
+  - Calculate average weekly/monthly gain from snapshot history
+  - Extend chart timeline 12–24 months with projected values
+  - Render projection as dashed line in amber to differentiate from actual data
+  - Tooltip on hover showing projected value + date
+  - Optional: custom monthly savings rate override
+  - Feeds into the monthly savings rate card (see below)
 
-Project net worth forward based on current average growth rate, shown as a dashed line extending from the last data point on the chart.
+- [ ] **Account filtering — institution** *(Dashboard)* — filter by institution (deferred; owner + asset filters shipped)
 
-- Calculate average weekly/monthly gain from snapshot history
-- Extend chart timeline 12–24 months with projected values
-- Render projection as dashed line in distinct colour (amber) to differentiate from actual data
-- Tooltip on hover showing projected value + date
-- Optional: let user input a custom monthly savings rate to override auto-calculated rate
-- Feeds into the monthly savings rate card (see below)
-
-### [ ] Account filtering
-**Page:** Home / Dashboard
-
-Allow users to filter which accounts are included in the net worth total and asset allocation breakdown.
-
-- Filter by owner (Husband / Wife / Joint)
-- Filter by asset type (Cash / Shares / Crypto / Super)
-- Filter by institution
-- Persist filter state across sessions (settings table or localStorage)
-- Show visual indicator when filters are active so the total doesn't look misleading
-
-### [ ] Monthly savings rate
-**Page:** Home or Trends
-
-Display the current rate of savings per month, calculated from snapshot history.
-
-- Calculate average monthly net worth increase over the last 3 months
-- Show as a summary stat card (e.g. "Saving ~$X / month")
-- Break down by owner (H / W / J) if possible
-- Highlight if savings rate has increased or decreased vs prior period
-- Feeds into the forecast graph above
+- [ ] **Monthly savings rate** *(Home or Trends)* — display average monthly savings from snapshot history
+  - Calculate average monthly net worth increase over the last 3 months
+  - Show as a summary stat card (e.g. "Saving ~$X / month")
+  - Break down by owner (H / W / J) if possible
+  - Highlight if savings rate has increased or decreased vs prior period
+  - Feeds into the forecast graph above

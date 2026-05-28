@@ -10,6 +10,31 @@ import { fetchAccounts, fetchNetWorth, fetchNetWorthHistory, fetchFxRate } from 
 import { fmt, fmtShort, fmtPct } from "@/lib/utils";
 import { ASSETS } from "@/lib/tokens";
 
+const ASSET_OPTS = [
+  { key: "all",    label: "ALL"    },
+  { key: "cash",   label: "CASH"   },
+  { key: "shares", label: "SHARES" },
+  { key: "crypto", label: "CRYPTO" },
+  { key: "super",  label: "SUPER"  },
+];
+
+function AssetFilter({ active, onChange }) {
+  return (
+    <div style={{ display: "flex", gap: 4, background: "var(--ink3)", borderRadius: "3px 10px 10px 3px", padding: 3 }}>
+      {ASSET_OPTS.map(o => (
+        <button key={o.key} onClick={() => onChange(o.key)} className="btn-press" style={{
+          fontFamily: "var(--font-mono)", fontSize: 9, letterSpacing: "0.1em",
+          padding: "5px 10px", borderRadius: "2px 7px 7px 2px", border: "none",
+          cursor: "pointer",
+          background: active === o.key ? "var(--gold)" : "transparent",
+          color: active === o.key ? "#0C0A08" : "var(--ink2)",
+          transition: "all 0.2s",
+        }}>{o.label}</button>
+      ))}
+    </div>
+  );
+}
+
 function OwnerFilter({ active, onChange }) {
   const options = [
     { key: "all", label: "COMBINED" },
@@ -33,7 +58,7 @@ function OwnerFilter({ active, onChange }) {
   );
 }
 
-function NetWorthHero({ total, history }) {
+function NetWorthHero({ total, history, filtered }) {
   const { theme } = useTheme();
   const prev  = history?.length > 1 ? history[history.length - 2]?.total : total;
   const change = total - (prev || total);
@@ -48,7 +73,10 @@ function NetWorthHero({ total, history }) {
         : "linear-gradient(135deg, rgba(180,120,0,0.06) 0%, rgba(26,22,20,0.02) 60%)",
       borderColor: "rgba(255,210,74,0.2)",
     }}>
-      <div className="label" style={{ marginBottom: 8 }}>Total Net Worth</div>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+        <div className="label">Total Net Worth</div>
+        {filtered && <div style={{ fontFamily: "var(--font-mono)", fontSize: 8, letterSpacing: "0.1em", padding: "2px 6px", borderRadius: "2px 5px 5px 2px", background: "rgba(255,210,74,0.15)", color: "var(--gold)" }}>FILTERED</div>}
+      </div>
       <div style={{ fontFamily: "var(--font-display)", fontSize: 38, letterSpacing: "0.02em", color: "var(--ink)", lineHeight: 1, marginBottom: 8 }}>
         {fmt(total)}
       </div>
@@ -80,12 +108,20 @@ function NetWorthHero({ total, history }) {
 }
 
 export default function DashboardPage() {
-  const [owner, setOwner]       = useState("all");
+  const [owner, setOwner]           = useState("all");
+  const [assetFilter, setAssetFilter] = useState(() =>
+    typeof window !== "undefined" ? (localStorage.getItem("dash_asset") || "all") : "all"
+  );
   const [accounts, setAccounts] = useState([]);
   const [networth, setNetworth] = useState(null);
   const [history, setHistory]   = useState([]);
   const [loading, setLoading]   = useState(true);
   const { theme } = useTheme();
+
+  const handleAssetFilter = (val) => {
+    setAssetFilter(val);
+    localStorage.setItem("dash_asset", val);
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -115,16 +151,24 @@ export default function DashboardPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  const assetTotals = { cash: networth?.cash || 0, shares: networth?.shares || 0, crypto: networth?.crypto || 0, super: networth?.super || 0 };
+  const isFiltered = assetFilter !== "all";
+  const filteredAccounts = isFiltered ? accounts.filter(a => a.asset === assetFilter) : accounts;
+  const filteredTotal = filteredAccounts.reduce((s, a) => s + (a.balance || 0), 0);
+  const assetTotals = filteredAccounts.reduce((acc, a) => {
+    acc[a.asset] = (acc[a.asset] || 0) + (a.balance || 0);
+    return acc;
+  }, { cash: 0, shares: 0, crypto: 0, super: 0 });
+
   const grouped = {};
-  accounts.forEach(a => { if (!grouped[a.asset]) grouped[a.asset] = []; grouped[a.asset].push(a); });
+  filteredAccounts.forEach(a => { if (!grouped[a.asset]) grouped[a.asset] = []; grouped[a.asset].push(a); });
   const assetOrder  = ["cash","shares","crypto","super"];
   const assetLabels = { cash: "Cash", shares: "Shares", crypto: "Crypto", super: "Super" };
 
   return (
     <AppShell><main className="page" style={{ paddingTop: 16, display: "flex", flexDirection: "column", gap: 14 }}>
-        <div className="fade-up" style={{ display: "flex", justifyContent: "center" }}>
+        <div className="fade-up" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
           <OwnerFilter active={owner} onChange={setOwner} />
+          <AssetFilter active={assetFilter} onChange={handleAssetFilter} />
         </div>
 
         {loading ? (
@@ -133,7 +177,7 @@ export default function DashboardPage() {
           </div>
         ) : (
           <>
-            <NetWorthHero total={networth?.total || 0} history={history} />
+            <NetWorthHero total={isFiltered ? filteredTotal : (networth?.total || 0)} history={history} filtered={isFiltered} />
 
             <div className="card fade-up fade-up-1" style={{ padding: "16px 18px" }}>
               <div className="label" style={{ marginBottom: 12 }}>Asset Allocation</div>
