@@ -10,10 +10,14 @@ import { ASSETS } from "@/lib/tokens";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const ASSET_OPTIONS     = ["cash","shares","crypto","super"];
-const OWNER_OPTIONS     = [{ value:"H", label:"Husband" }, { value:"W", label:"Wife" }, { value:"J", label:"Joint" }];
 const CURRENCY_OPTIONS  = ["AUD","USD"];
 const FREQUENCY_OPTIONS = ["weekly","fortnightly","monthly"];
 const EMPTY_ACCOUNT     = { name:"", institution:"", owner:"H", asset:"cash", currency:"AUD", frequency:"weekly", group:"" };
+const OWNER_DEFAULTS    = [
+  { key:"H", defaultLabel:"Husband" },
+  { key:"W", defaultLabel:"Wife"    },
+  { key:"J", defaultLabel:"Joint"   },
+];
 
 // ─── Credential field groups ──────────────────────────────────────────────────
 const CREDENTIAL_GROUPS = [
@@ -337,8 +341,92 @@ function CredentialGroup({ group, settings, onSave }) {
   );
 }
 
+// ─── Owner labels card ────────────────────────────────────────────────────────
+function OwnerLabelsCard({ settings, onSave }) {
+  const [local, setLocal]   = useState({});
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved]   = useState(false);
+
+  useEffect(() => {
+    const init = {};
+    OWNER_DEFAULTS.forEach(({ key, defaultLabel }) => {
+      init[`owner_${key}_label`]  = settings[`owner_${key}_label`]  || defaultLabel;
+      init[`owner_${key}_active`] = settings[`owner_${key}_active`] !== "0" ? "1" : "0";
+    });
+    setLocal(init);
+  }, [settings]);
+
+  const hasChanges = OWNER_DEFAULTS.some(({ key, defaultLabel }) => {
+    const lk = `owner_${key}_label`, ak = `owner_${key}_active`;
+    return local[lk] !== (settings[lk] || defaultLabel) ||
+           local[ak] !== (settings[ak] !== "0" ? "1" : "0");
+  });
+
+  const handleSave = async () => {
+    setSaving(true);
+    await onSave(local);
+    setSaving(false); setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  return (
+    <div className="card fade-up" style={{ padding:"18px 20px" }}>
+      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
+        <span style={{ fontFamily:"var(--font-mono)", fontSize:16, color:"var(--gold)" }}>◉</span>
+        <span style={{ fontFamily:"var(--font-display)", fontSize:14, color:"var(--ink)" }}>Owner Labels</span>
+      </div>
+      <div style={{ fontFamily:"var(--font-mono)", fontSize:9, color:"var(--ink2)", letterSpacing:"0.06em", marginBottom:14 }}>
+        Rename to match your household. Keys (H / W / J) stay in the DB — only what's shown in the UI changes.
+      </div>
+      <div style={{ display:"flex", flexDirection:"column", gap:10, marginBottom:14 }}>
+        {OWNER_DEFAULTS.map(({ key, defaultLabel }) => (
+          <div key={key} style={{ display:"flex", gap:10, alignItems:"center" }}>
+            <div style={{ fontFamily:"var(--font-mono)", fontSize:10, color:"var(--ink3)", width:16, flexShrink:0, textAlign:"center" }}>
+              {key}
+            </div>
+            <div style={{ flex:1 }}>
+              <Input
+                value={local[`owner_${key}_label`] || ""}
+                onChange={v => setLocal(l => ({ ...l, [`owner_${key}_label`]: v }))}
+                placeholder={defaultLabel}
+              />
+            </div>
+            <button
+              onClick={() => setLocal(l => ({ ...l, [`owner_${key}_active`]: l[`owner_${key}_active`] === "1" ? "0" : "1" }))}
+              className="btn-press"
+              style={{
+                padding:"8px 12px", borderRadius:"2px 7px 7px 2px",
+                border:"1px solid var(--border)", cursor:"pointer", flexShrink:0,
+                fontFamily:"var(--font-mono)", fontSize:9, letterSpacing:"0.08em",
+                background: local[`owner_${key}_active`] === "1" ? "rgba(125,214,138,0.12)" : "transparent",
+                color:      local[`owner_${key}_active`] === "1" ? "var(--positive)" : "var(--ink3)",
+              }}
+            >
+              {local[`owner_${key}_active`] === "1" ? "ON" : "OFF"}
+            </button>
+          </div>
+        ))}
+      </div>
+      <button
+        onClick={handleSave} disabled={saving || !hasChanges} className="btn-press"
+        style={{
+          width:"100%", padding:"10px",
+          background: saved ? "rgba(125,214,138,0.15)" : hasChanges ? "var(--gold)" : "var(--ink3)",
+          border: saved ? "1px solid var(--positive)" : "none",
+          borderRadius:"2px 9px 9px 2px",
+          fontFamily:"var(--font-mono)", fontSize:10, letterSpacing:"0.1em",
+          color: saved ? "var(--positive)" : hasChanges ? "#0C0A08" : "var(--ink2)",
+          cursor: hasChanges ? "pointer" : "not-allowed", transition:"all 0.2s",
+        }}
+      >
+        {saving ? "SAVING..." : saved ? "✓ SAVED" : "SAVE"}
+      </button>
+    </div>
+  );
+}
+
 // ─── Account form ─────────────────────────────────────────────────────────────
-function AccountForm({ initial = EMPTY_ACCOUNT, onSave, onCancel, isNew }) {
+function AccountForm({ initial = EMPTY_ACCOUNT, onSave, onCancel, isNew, ownerOptions }) {
   const [form, setForm] = useState({ ...initial });
   const { theme } = useTheme();
   const set = key => val => setForm(f => ({ ...f, [key]: val }));
@@ -362,7 +450,7 @@ function AccountForm({ initial = EMPTY_ACCOUNT, onSave, onCancel, isNew }) {
         <div style={{ display:"flex", gap:10 }}>
           <div style={{ flex:1 }}>
             <Field label="Owner">
-              <Select value={form.owner} onChange={set("owner")} options={OWNER_OPTIONS} />
+              <Select value={form.owner} onChange={set("owner")} options={ownerOptions} />
             </Field>
           </div>
           <div style={{ flex:1 }}>
@@ -413,7 +501,7 @@ function AccountForm({ initial = EMPTY_ACCOUNT, onSave, onCancel, isNew }) {
 }
 
 // ─── Account row ──────────────────────────────────────────────────────────────
-function AccountRow({ account, onEdit, onDelete }) {
+function AccountRow({ account, onEdit, onDelete, ownersMap }) {
   const { theme } = useTheme();
   const color = ASSETS[account.asset]?.[theme] || "var(--ink2)";
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -433,7 +521,7 @@ function AccountRow({ account, onEdit, onDelete }) {
           {account.grp && <div style={{ fontFamily:"var(--font-mono)", fontSize:8, color:"var(--ink2)" }}>{account.grp}</div>}
         </div>
         <div style={{ fontFamily:"var(--font-mono)", fontSize:9, color:"var(--ink2)", letterSpacing:"0.06em" }}>
-          {account.institution} · {ownerLabel(account.owner)} · {account.currency} · {account.frequency}
+          {account.institution} · {ownerLabel(account.owner, ownersMap)} · {account.currency} · {account.frequency}
         </div>
         {account.currency !== "AUD" && account.native_balance != null && (
           <div style={{ fontFamily:"var(--font-mono)", fontSize:8, color:"var(--ink3)", marginTop:2 }}>
@@ -995,6 +1083,11 @@ export default function AdminPage() {
   const filtered = assetFilter === "all" ? accounts : accounts.filter(a => a.asset === assetFilter);
   const assetOrder = ["cash","shares","crypto","super"];
 
+  const ownerOptions = OWNER_DEFAULTS
+    .filter(({ key }) => settings[`owner_${key}_active`] !== "0")
+    .map(({ key, defaultLabel }) => ({ value: key, label: settings[`owner_${key}_label`] || defaultLabel }));
+  const ownersMap = Object.fromEntries(ownerOptions.map(o => [o.value, o.label]));
+
   // Count configured credentials
   const credsConfigured = CREDENTIAL_GROUPS.filter(g =>
     g.fields.some(f => f.secret && settings[f.key] && !settings[f.key].startsWith("••••") || (settings[f.key] && settings[f.key].length > 4))
@@ -1031,8 +1124,8 @@ export default function AdminPage() {
             {/* ─── Accounts tab ─── */}
             {tab === "accounts" && (
               <>
-                {adding && <AccountForm isNew onSave={handleAdd} onCancel={() => setAdding(false)} />}
-                {editing && <AccountForm initial={editing} onSave={handleEdit} onCancel={() => setEditing(null)} />}
+                {adding && <AccountForm isNew onSave={handleAdd} onCancel={() => setAdding(false)} ownerOptions={ownerOptions} />}
+                {editing && <AccountForm initial={editing} onSave={handleEdit} onCancel={() => setEditing(null)} ownerOptions={ownerOptions} />}
 
                 {!adding && !editing && (
                   <>
@@ -1062,6 +1155,7 @@ export default function AdminPage() {
                         <AccountRow key={account.id} account={account}
                           onEdit={a => { setEditing(a); setAdding(false); }}
                           onDelete={handleDelete}
+                          ownersMap={ownersMap}
                         />
                       ))}
                       {filtered.length === 0 && (
@@ -1081,6 +1175,7 @@ export default function AdminPage() {
                 <div style={{ fontFamily:"var(--font-mono)", fontSize:9, color:"var(--ink2)", letterSpacing:"0.08em", padding:"10px 14px", background:"rgba(255,210,74,0.06)", border:"1px solid rgba(255,210,74,0.2)", borderRadius:"2px 8px 8px 2px" }}>
                   ◈ Credentials are stored in the local SQLite database on your VPS. Never committed to git.
                 </div>
+                <OwnerLabelsCard settings={settings} onSave={handleSaveSettings} />
                 <CronStatusCard />
                 <NotifyStatusCard />
                 <RestoreDbCard />
