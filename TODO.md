@@ -425,3 +425,41 @@ You receive an ntfy notification for:
 - ✅ Successful deploy (default priority)
 - ⚠ Deploy aborted — smoke tests failed before restart (high priority)
 - 🔄 Deploy failed + rolled back (high priority)
+
+---
+
+## Upcoming Features
+
+### [ ] Forecast graph — future net worth projection
+**Page:** Trends
+
+Project net worth forward based on current average growth rate, shown as a dashed line extending from the last data point on the chart.
+
+- Calculate average weekly/monthly gain from snapshot history
+- Extend chart timeline 12–24 months with projected values
+- Render projection as dashed line in distinct colour (amber) to differentiate from actual data
+- Tooltip on hover showing projected value + date
+- Optional: let user input a custom monthly savings rate to override auto-calculated rate
+- Feeds into the monthly savings rate card (see below)
+
+### [ ] Account filtering
+**Page:** Home / Dashboard
+
+Allow users to filter which accounts are included in the net worth total and asset allocation breakdown.
+
+- Filter by owner (Husband / Wife / Joint)
+- Filter by asset type (Cash / Shares / Crypto / Super)
+- Filter by institution
+- Persist filter state across sessions (settings table or localStorage)
+- Show visual indicator when filters are active so the total doesn't look misleading
+
+### [ ] Monthly savings rate
+**Page:** Home or Trends
+
+Display the current rate of savings per month, calculated from snapshot history.
+
+- Calculate average monthly net worth increase over the last 3 months
+- Show as a summary stat card (e.g. "Saving ~$X / month")
+- Break down by owner (H / W / J) if possible
+- Highlight if savings rate has increased or decreased vs prior period
+- Feeds into the forecast graph above
