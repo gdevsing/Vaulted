@@ -441,9 +441,4 @@ You receive an ntfy notification for:
 
 - [ ] **Account filtering — institution** *(Dashboard)* — filter by institution (deferred; owner + asset filters shipped)
 
-- [ ] **Monthly savings rate** *(Home or Trends)* — display average monthly savings from snapshot history
-  - Calculate average monthly net worth increase over the last 3 months
-  - Show as a summary stat card (e.g. "Saving ~$X / month")
-  - Break down by owner (H / W / J) if possible
-  - Highlight if savings rate has increased or decreased vs prior period
-  - Feeds into the forecast graph above
+- [x] **Monthly savings rate** *(Trends)* — "Monthly Avg" stat pill showing avg monthly savings from snapshot history, with ▲/▼ improving/slowing trend indicator vs prior period
