@@ -64,11 +64,14 @@ function CustomTooltip({ active, payload, label, theme }) {
       <div style={{ color: "var(--ink2)", fontSize: 9, letterSpacing: "0.1em", marginBottom: 6 }}>
         {label}
       </div>
-      {payload.map(p => (
-        <div key={p.dataKey} style={{ color: p.color, marginBottom: 2 }}>
-          {p.name ? `${p.name}: ` : ""}{fmt(p.value)}
-        </div>
-      ))}
+      {payload
+        .filter(p => p.value != null)
+        .filter((p, _, arr) => !(p.dataKey === "projected" && arr.some(q => q.dataKey === "value")))
+        .map(p => (
+          <div key={p.dataKey} style={{ color: p.color, marginBottom: 2 }}>
+            {p.name ? `${p.name}: ` : ""}{fmt(p.value)}
+          </div>
+        ))}
     </div>
   );
 }
@@ -115,7 +118,6 @@ export default function TrendsPage() {
     return historyData.slice(-filter.weeks);
   }, [historyData, filter]);
 
-  const chartData     = sliced.map(d => ({ date: d.label, value: d.value }));
   const breakdownData = sliced.map(d => ({ month: d.label, Cash: d.Cash, Shares: d.Shares, Crypto: d.Crypto, Super: d.Super }));
 
   const first   = sliced[0]?.value || 0;
@@ -137,11 +139,31 @@ export default function TrendsPage() {
   const earlierAvg     = mid > 0 ? weeklyDeltas.slice(0, mid).reduce((s, c) => s + c, 0) / mid : avgWeekly;
   const savingsTrendUp = recentAvg >= earlierAvg;
 
+  const lastWeek = sliced[sliced.length - 1]?.week;
+  const forecastPoints = sliced.length >= 2 && lastWeek ? Array.from({ length: 52 }, (_, i) => {
+    const [yr, wk] = lastWeek.split("-").map(Number);
+    const d = new Date(yr, 0, 4 + (wk - 1 + i + 1) * 7);
+    return {
+      date: d.toLocaleDateString("en-AU", { month: "short", day: "numeric" }),
+      projected: Math.round(last + avgWeekly * (i + 1)),
+    };
+  }) : [];
+
+  const forecastChart = [
+    ...sliced.map((d, i) => ({
+      date: d.label,
+      value: d.value,
+      projected: i === sliced.length - 1 ? d.value : undefined,
+    })),
+    ...forecastPoints,
+  ];
+
   const cashColor   = ASSETS.cash[theme];
   const sharesColor = ASSETS.shares[theme];
   const cryptoColor = ASSETS.crypto[theme];
   const superColor  = ASSETS.super[theme];
   const lineColor   = isUp ? (theme === "dark" ? "#7DD68A" : "#1A7A38") : (theme === "dark" ? "#E87070" : "#C03030");
+  const goldColor   = theme === "dark" ? "#FFD24A" : "#B87800";
   const gridColor   = theme === "dark" ? "rgba(255,255,255,0.05)" : "rgba(26,22,20,0.07)";
   const axisColor   = theme === "dark" ? "#3A3028" : "#C8C0B4";
 
@@ -216,7 +238,7 @@ export default function TrendsPage() {
                 <>
                   <div className="label" style={{ marginBottom: 14, paddingLeft: 6 }}>Net Worth</div>
                   <ResponsiveContainer width="100%" height={220}>
-                    <AreaChart data={chartData} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
+                    <AreaChart data={forecastChart} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
                       <defs>
                         <linearGradient id="nwGrad" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="0%" stopColor={lineColor} stopOpacity={0.25} />
@@ -227,9 +249,22 @@ export default function TrendsPage() {
                       <XAxis dataKey="date" tick={{ fontFamily: "var(--font-mono)", fontSize: 8, fill: axisColor, letterSpacing: "0.06em" }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
                       <YAxis tick={{ fontFamily: "var(--font-mono)", fontSize: 8, fill: axisColor }} tickLine={false} axisLine={false} tickFormatter={v => fmtShort(v)} width={42} />
                       <Tooltip content={<CustomTooltip theme={theme} />} />
-                      <Area type="monotone" dataKey="value" stroke={lineColor} strokeWidth={2} fill="url(#nwGrad)" dot={false} activeDot={{ r: 4, fill: lineColor, stroke: "var(--bg)", strokeWidth: 2 }} />
+                      <Area type="monotone" dataKey="value" name="Net Worth" stroke={lineColor} strokeWidth={2} fill="url(#nwGrad)" dot={false} activeDot={{ r: 4, fill: lineColor, stroke: "var(--bg)", strokeWidth: 2 }} />
+                      <Area type="monotone" dataKey="projected" name="Forecast" stroke={goldColor} strokeWidth={1.5} strokeDasharray="5 4" fill="none" dot={false} activeDot={{ r: 3, fill: goldColor, stroke: "var(--bg)", strokeWidth: 2 }} />
                     </AreaChart>
                   </ResponsiveContainer>
+                  {forecastPoints.length > 0 && (
+                    <div style={{ display: "flex", gap: 16, paddingLeft: 6, marginTop: 10 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                        <div style={{ width: 14, height: 2, background: lineColor, borderRadius: 1 }} />
+                        <span style={{ fontFamily: "var(--font-mono)", fontSize: 8, color: "var(--ink2)", letterSpacing: "0.08em" }}>ACTUAL</span>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                        <div style={{ width: 14, height: 0, borderTop: `2px dashed ${goldColor}` }} />
+                        <span style={{ fontFamily: "var(--font-mono)", fontSize: 8, color: goldColor, letterSpacing: "0.08em" }}>FORECAST</span>
+                      </div>
+                    </div>
+                  )}
                 </>
               ) : (
                 <>
