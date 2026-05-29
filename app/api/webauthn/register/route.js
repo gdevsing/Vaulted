@@ -1,18 +1,18 @@
 export const dynamic = "force-dynamic";
 
-// POST /api/webauthn/register
-// Two phases:
-//   body { phase: "start" }  → returns a registration challenge
-//   body { phase: "finish", credential: {...} } → verifies and stores the credential
-//
-// Auth: requires vaulted_auth cookie (middleware + explicit check)
-// Credential is stored in settings as "webauthn_credential" JSON
-
 import { NextResponse } from "next/server";
 import { cookies }      from "next/headers";
-import { initDb, getSetting, setSetting } from "@/lib/db";
+import { initDb, getDb, getSetting } from "@/lib/db";
 
 const RP_NAME = "Vaulted";
+
+async function setSetting(key, value) {
+  const db = getDb();
+  await db.execute({
+    sql: "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
+    args: [key, value],
+  });
+}
 
 function base64url(buffer) {
   return Buffer.from(buffer)
@@ -20,23 +20,17 @@ function base64url(buffer) {
     .replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
 }
 
-function fromBase64url(str) {
-  return Buffer.from(str.replace(/-/g, "+").replace(/_/g, "/"), "base64");
-}
-
 export async function POST(request) {
   const cookieStore = cookies();
-  if (!cookieStore.get("vaulted_auth")) {
+  if (!cookieStore.get("vaulth_auth") && !cookieStore.get("vaulted_auth")) {
     return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
   }
 
   await initDb();
   const body = await request.json();
 
-  // ── Phase 1: Start registration ──────────────────────────────────────────
   if (body.phase === "start") {
     const challenge = base64url(crypto.getRandomValues(new Uint8Array(32)));
-    // Store challenge temporarily (valid 2 minutes)
     await setSetting("webauthn_pending_challenge", JSON.stringify({
       challenge,
       expires: Date.now() + 120_000,
@@ -51,8 +45,8 @@ export async function POST(request) {
         displayName: "Vaulted Household",
       },
       pubKeyCredParams: [
-        { type: "public-key", alg: -7  }, // ES256
-        { type: "public-key", alg: -257 }, // RS256
+        { type: "public-key", alg: -7  },
+        { type: "public-key", alg: -257 },
       ],
       authenticatorSelection: {
         authenticatorAttachment: "platform",
@@ -63,7 +57,6 @@ export async function POST(request) {
     });
   }
 
-  // ── Phase 2: Finish registration ──────────────────────────────────────────
   if (body.phase === "finish") {
     const pendingRaw = await getSetting("webauthn_pending_challenge");
     if (!pendingRaw) {
@@ -74,13 +67,11 @@ export async function POST(request) {
       return NextResponse.json({ error: "Challenge expired" }, { status: 400 });
     }
 
-    // Store the credential — we store id + rawId for verify phase
     const credential = {
-      id:        body.credential.id,
-      rawId:     body.credential.rawId,
-      type:      body.credential.type,
-      // Store the public key from attestation for future verification
-      response:  body.credential.response,
+      id:           body.credential.id,
+      rawId:        body.credential.rawId,
+      type:         body.credential.type,
+      response:     body.credential.response,
       registeredAt: new Date().toISOString(),
     };
 
