@@ -32,7 +32,7 @@ export default function SplashScreen({ onComplete }) {
   return (
     <div style={{
       position: "fixed", inset: 0, zIndex: 9999,
-      background: "#0C0A08",
+      background: "#0F0F0F",
       display: "flex", flexDirection: "column",
       alignItems: "center", justifyContent: "center",
       gap: 28,
@@ -54,12 +54,12 @@ export default function SplashScreen({ onComplete }) {
           animation: "splashDial 2.2s cubic-bezier(0.16,1,0.3,1) both",
         }}>
           <line x1={c} y1={c+size*0.08} x2={c} y2={c-r*0.7}
-            stroke="#FFD24A" strokeWidth={size*0.033} strokeLinecap="round"/>
+            stroke="#FF4757" strokeWidth={size*0.033} strokeLinecap="round"/>
           <line x1={c} y1={c} x2={c} y2={c+size*0.16}
-            stroke="#FFD24A" strokeWidth={size*0.02} strokeLinecap="round" opacity={0.4}/>
+            stroke="#FF4757" strokeWidth={size*0.02} strokeLinecap="round" opacity={0.4}/>
         </g>
-        <circle cx={c} cy={c} r={size*0.055} fill="#FFD24A" />
-        <circle cx={c} cy={c} r={size*0.027} fill="#0C0A08"/>
+        <circle cx={c} cy={c} r={size*0.055} fill="#FF4757" />
+        <circle cx={c} cy={c} r={size*0.027} fill="#0F0F0F"/>
       </svg>
 
       {/* Text */}

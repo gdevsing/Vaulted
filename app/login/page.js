@@ -3,8 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Logo from "@/components/logo";
-import { ThemeToggle } from "@/components/ui/primitives";
-import { useTheme } from "@/app/layout";
+
 
 
 const QUOTES = [
@@ -74,7 +73,6 @@ function QuoteFooter() {
 }
 
 export default function LoginPage() {
-  const { theme, toggleTheme } = useTheme();
   const router = useRouter();
   const [password, setPassword] = useState("");
   const [error, setError] = useState(false);
@@ -114,11 +112,6 @@ export default function LoginPage() {
       gap: 40,
       position: "relative",
     }}>
-
-      {/* Theme toggle — top right */}
-      <div style={{ position: "absolute", top: 20, right: 20 }}>
-        <ThemeToggle theme={theme} onToggle={toggleTheme} />
-      </div>
 
       {/* Logo + tagline */}
       <div className="fade-up" style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
@@ -191,7 +184,7 @@ export default function LoginPage() {
               fontFamily: "var(--font-display)",
               fontSize: 16,
               letterSpacing: "0.14em",
-              color: "#0C0A08",
+              color: "#FFFFFF",
               cursor: "pointer",
               width: "100%",
             }}

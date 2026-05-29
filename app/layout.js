@@ -3,18 +3,12 @@
 import { useState, createContext, useContext } from "react";
 import "./globals.css";
 
-export const ThemeContext = createContext({ theme: "dark", toggleTheme: () => {} });
+export const ThemeContext = createContext({ theme: "coral", toggleTheme: () => {} });
 export const useTheme = () => useContext(ThemeContext);
 
-// Themes cycle: dark → coral → dark
-const THEMES = ["dark", "coral"];
-
 export default function RootLayout({ children }) {
-  const [theme, setTheme] = useState("dark");
-  const toggleTheme = () => setTheme(t => {
-    const idx = THEMES.indexOf(t);
-    return THEMES[(idx + 1) % THEMES.length];
-  });
+  const theme = "coral";
+  const toggleTheme = () => {};
 
   return (
     <html lang="en" data-theme={theme}>
@@ -23,7 +17,7 @@ export default function RootLayout({ children }) {
 
         {/* PWA — Android */}
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#0C0A08" />
+        <meta name="theme-color" content="#0F0F0F" />
         <meta name="mobile-web-app-capable" content="yes" />
 
         {/* PWA — iOS */}

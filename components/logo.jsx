@@ -12,8 +12,8 @@ export default function Logo({ size = "default", showWordmark = true, className 
   };
 
   const s      = sizes[size] || sizes.default;
-  const fg     = theme === "dark" ? "#F0ECE8" : "#1A1614";
-  const accent = theme === "dark" ? "#FFD24A" : "#B87800";
+  const fg     = "#F0F0F0";
+  const accent = "#FF4757";
   const c      = s.mark / 2;
   const r      = s.mark * 0.44;
 
