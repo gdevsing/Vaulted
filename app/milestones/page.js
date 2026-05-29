@@ -49,7 +49,7 @@ function GoalBar({ goal, current, history }) {
       padding: "12px 16px",
       borderLeft: `3px solid ${achieved ? "var(--positive)" : "var(--gold)"}`,
       background: achieved
-        ? (theme === "dark" ? "rgba(125,214,138,0.05)" : "rgba(26,122,56,0.04)")
+        ? "rgba(125,214,138,0.05)"
         : undefined,
     }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
@@ -145,7 +145,7 @@ function MilestoneBadge({ milestone, index }) {
         border: "1.5px solid var(--gold)",
         display: "flex", alignItems: "center", justifyContent: "center",
         fontSize: 14, color: "var(--gold)", flexShrink: 0,
-        background: theme === "dark" ? "rgba(255,210,74,0.06)" : "rgba(180,120,0,0.05)",
+        background: "rgba(255,71,87,0.06)",
       }}>
         {icons[index % icons.length]}
       </div>
@@ -215,10 +215,8 @@ export default function MilestonesPage() {
         {/* Hero — next milestone */}
         <div className="card card-glow fade-up" style={{
           padding: "16px 16px",
-          background: theme === "dark"
-            ? "linear-gradient(135deg, rgba(255,210,80,0.07) 0%, rgba(255,255,255,0.02) 60%)"
-            : "linear-gradient(135deg, rgba(180,120,0,0.06) 0%, rgba(26,22,20,0.02) 60%)",
-          borderColor: "rgba(255,210,74,0.2)",
+          background: "linear-gradient(135deg, rgba(255,71,87,0.12) 0%, rgba(255,255,255,0.02) 60%)",
+          borderColor: "rgba(255,71,87,0.25)",
         }}>
           <div className="label" style={{ marginBottom: 8 }}>Next Milestone</div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 10 }}>
