@@ -1004,25 +1004,38 @@ function RestoreDbCard() {
 
 // ─── Biometric lock card ──────────────────────────────────────────────────────
 function BiometricCard() {
-  const [status,    setStatus]    = useState(null); // null | "registering" | "registered" | "removing" | "error"
-  const [message,   setMessage]   = useState("");
-  const [isEnabled, setIsEnabled] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [pwdError,  setPwdError]  = useState(false);
-  const [action,    setAction]    = useState(null); // "register" | "remove"
+  const [devices,    setDevices]    = useState([]);   // registered devices
+  const [loading,    setLoading]    = useState(true);
+  const [status,     setStatus]     = useState(null); // null | "registering" | "error"
+  const [message,    setMessage]    = useState("");
+  const [deviceName, setDeviceName] = useState("");
+  const [showModal,  setShowModal]  = useState(false);
+  const [pwdError,   setPwdError]   = useState(false);
+  const [pendingDel, setPendingDel] = useState(null); // device id to delete, or "all"
 
-  useEffect(() => {
-    fetch("/api/settings")
+  const loadDevices = () => {
+    setLoading(true);
+    fetch("/api/webauthn/register")
       .then(r => r.json())
-      .then(({ settings }) => setIsEnabled(settings.webauthn_enabled === "1"))
-      .catch(() => {});
-  }, []);
+      .then(d => { setDevices(d.devices || []); })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  };
 
-  const supported = typeof window !== "undefined" &&
-    window.PublicKeyCredential !== undefined;
+  useEffect(() => { loadDevices(); }, []);
 
-  const handleAction = (act) => {
-    setAction(act);
+  const supported = typeof window !== "undefined" && window.PublicKeyCredential !== undefined;
+  const isEnabled = devices.length > 0;
+
+  const handleRegister = () => {
+    if (!deviceName.trim()) return;
+    setPwdError(false);
+    setPendingDel(null);
+    setShowModal(true);
+  };
+
+  const handleRemove = (deviceId) => {
+    setPendingDel(deviceId);
     setPwdError(false);
     setShowModal(true);
   };
@@ -1037,24 +1050,27 @@ function BiometricCard() {
     if (!valid) { setPwdError(true); return; }
     setShowModal(false);
 
-    if (action === "remove") {
-      setStatus("removing");
-      await fetch("/api/webauthn/register", { method: "DELETE" });
-      setIsEnabled(false);
-      setStatus(null);
-      setMessage("Biometric lock removed.");
+    // ── Remove device ──
+    if (pendingDel) {
+      await fetch("/api/webauthn/register", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ deviceId: pendingDel === "all" ? undefined : pendingDel }),
+      });
+      setMessage(pendingDel === "all" ? "All devices removed." : "Device removed.");
+      setPendingDel(null);
+      loadDevices();
       return;
     }
 
-    // Register
+    // ── Register new device ──
     setStatus("registering");
     setMessage("");
     try {
-      // Phase 1 — get options
       const startRes = await fetch("/api/webauthn/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phase: "start" }),
+        body: JSON.stringify({ phase: "start", deviceName: deviceName.trim() }),
       });
       const options = await startRes.json();
 
@@ -1066,17 +1082,20 @@ function BiometricCard() {
         atob(options.user.id.replace(/-/g, "+").replace(/_/g, "/")),
         c => c.charCodeAt(0)
       );
+      const excludeCredentials = (options.excludeCredentials || []).map(c => ({
+        ...c,
+        id: Uint8Array.from(atob(c.id.replace(/-/g, "+").replace(/_/g, "/")), ch => ch.charCodeAt(0)),
+      }));
 
-      // Phase 2 — browser biometric prompt
       const credential = await navigator.credentials.create({
         publicKey: {
           ...options,
           challenge: challengeBuffer,
           user: { ...options.user, id: userIdBuffer },
+          excludeCredentials,
         },
       });
 
-      // Phase 3 — finish
       const finishRes = await fetch("/api/webauthn/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1096,38 +1115,78 @@ function BiometricCard() {
 
       const result = await finishRes.json();
       if (result.ok) {
-        setIsEnabled(true);
-        setStatus("registered");
-        setMessage("Biometric lock enabled on this device.");
+        setStatus(null);
+        setMessage(`✓ "${result.device.name}" registered.`);
+        setDeviceName("");
+        loadDevices();
       } else {
         throw new Error(result.error || "Registration failed");
       }
     } catch (err) {
       setStatus("error");
-      setMessage(err.name === "NotAllowedError" ? "Cancelled by user." : err.message);
+      setMessage(err.name === "NotAllowedError" ? "Cancelled." : err.name === "InvalidStateError" ? "This device is already registered." : err.message);
     }
   };
 
   return (
     <div className="card fade-up" style={{ padding: "18px 20px", borderLeft: `3px solid ${isEnabled ? "var(--positive)" : "var(--border-strong)"}` }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
-            <span style={{ fontSize: 16 }}>{isEnabled ? "🔒" : "🔓"}</span>
-            <span style={{ fontFamily: "var(--font-display)", fontSize: 14, color: "var(--ink)" }}>Biometric Lock</span>
-            {isEnabled && <span style={{ fontFamily: "var(--font-mono)", fontSize: 8, letterSpacing: "0.1em", padding: "1px 6px", borderRadius: "2px 6px 6px 2px", background: "rgba(125,214,138,0.15)", color: "var(--positive)", border: "1px solid rgba(125,214,138,0.25)" }}>ENABLED</span>}
-          </div>
-          <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--ink2)", letterSpacing: "0.06em", lineHeight: 1.6 }}>
-            {isEnabled
-              ? "App locks after inactivity. Unlock with Face ID or fingerprint."
-              : "Lock the app after inactivity. Requires Face ID or fingerprint to unlock."}
-          </div>
-        </div>
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+        <span style={{ fontSize: 15 }}>{isEnabled ? "🔒" : "🔓"}</span>
+        <span style={{ fontFamily: "var(--font-display)", fontSize: 14, color: "var(--ink)" }}>Biometric Lock</span>
+        {isEnabled && <span style={{ fontFamily: "var(--font-mono)", fontSize: 8, letterSpacing: "0.1em", padding: "1px 6px", borderRadius: "2px 6px 6px 2px", background: "rgba(125,214,138,0.15)", color: "var(--positive)", border: "1px solid rgba(125,214,138,0.25)" }}>{devices.length} DEVICE{devices.length !== 1 ? "S" : ""}</span>}
+      </div>
+      <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--ink2)", letterSpacing: "0.06em", lineHeight: 1.6, marginBottom: 14 }}>
+        PWA only. Each phone registers separately. Any registered device can unlock.
       </div>
 
       {!supported && (
         <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--negative)", letterSpacing: "0.06em", marginBottom: 12 }}>
-          ⚠ WebAuthn not supported on this browser/device
+          ⚠ WebAuthn not supported on this browser
+        </div>
+      )}
+
+      {/* Registered devices list */}
+      {!loading && devices.length > 0 && (
+        <div style={{ marginBottom: 14, display: "flex", flexDirection: "column", gap: 6 }}>
+          {devices.map(device => (
+            <div key={device.id} style={{
+              display: "flex", justifyContent: "space-between", alignItems: "center",
+              padding: "8px 12px", background: "rgba(255,255,255,0.03)",
+              border: "1px solid var(--border)", borderRadius: "2px 10px 10px 2px",
+            }}>
+              <div>
+                <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--ink)", marginBottom: 1 }}>
+                  {device.name}
+                </div>
+                <div style={{ fontFamily: "var(--font-mono)", fontSize: 8, color: "var(--ink2)", letterSpacing: "0.06em" }}>
+                  {new Date(device.registeredAt).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" })}
+                </div>
+              </div>
+              <button
+                onClick={() => handleRemove(device.id)}
+                className="btn-press"
+                style={{
+                  background: "transparent", border: "1px solid rgba(232,112,112,0.3)",
+                  borderRadius: "2px 7px 7px 2px", padding: "3px 10px",
+                  fontFamily: "var(--font-mono)", fontSize: 8, letterSpacing: "0.1em",
+                  color: "var(--negative)", cursor: "pointer",
+                }}
+              >
+                REMOVE
+              </button>
+            </div>
+          ))}
+          {devices.length > 1 && (
+            <button onClick={() => handleRemove("all")} className="btn-press" style={{
+              background: "transparent", border: "1px solid rgba(232,112,112,0.2)",
+              borderRadius: "2px 9px 9px 2px", padding: "6px",
+              fontFamily: "var(--font-mono)", fontSize: 8, letterSpacing: "0.1em",
+              color: "var(--negative)", cursor: "pointer", opacity: 0.7,
+            }}>
+              REMOVE ALL DEVICES
+            </button>
+          )}
         </div>
       )}
 
@@ -1137,40 +1196,38 @@ function BiometricCard() {
         </div>
       )}
 
-      <div style={{ display: "flex", gap: 8 }}>
-        {!isEnabled && supported && (
+      {/* Add new device */}
+      {supported && (
+        <div style={{ display: "flex", gap: 8 }}>
+          <input
+            type="text"
+            value={deviceName}
+            onChange={e => setDeviceName(e.target.value)}
+            placeholder="Device name (e.g. Gurdev's Phone)"
+            style={{
+              flex: 1, padding: "8px 12px",
+              background: "rgba(255,255,255,0.04)", border: "1px solid var(--border)",
+              borderRadius: "2px 9px 9px 2px", color: "var(--ink)",
+              fontFamily: "var(--font-mono)", fontSize: 10, outline: "none",
+            }}
+          />
           <button
-            onClick={() => handleAction("register")}
-            disabled={status === "registering"}
+            onClick={handleRegister}
+            disabled={!deviceName.trim() || status === "registering"}
             className="btn-press"
             style={{
-              flex: 1, padding: "10px",
-              background: "rgba(255,71,87,0.85)", border: "none",
-              borderRadius: "2px 9px 9px 2px",
-              fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.1em",
-              color: "#fff", cursor: "pointer",
+              padding: "8px 14px",
+              background: !deviceName.trim() || status === "registering" ? "var(--ink3)" : "rgba(255,71,87,0.85)",
+              border: "none", borderRadius: "2px 9px 9px 2px",
+              fontFamily: "var(--font-mono)", fontSize: 9, letterSpacing: "0.1em",
+              color: !deviceName.trim() || status === "registering" ? "var(--ink2)" : "#fff",
+              cursor: deviceName.trim() && status !== "registering" ? "pointer" : "not-allowed",
             }}
           >
-            {status === "registering" ? "REGISTERING..." : "REGISTER THIS DEVICE"}
+            {status === "registering" ? "..." : "+ ADD"}
           </button>
-        )}
-        {isEnabled && (
-          <button
-            onClick={() => handleAction("remove")}
-            className="btn-press"
-            style={{
-              flex: 1, padding: "10px",
-              background: "transparent",
-              border: "1px solid rgba(232,112,112,0.4)",
-              borderRadius: "2px 9px 9px 2px",
-              fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.1em",
-              color: "var(--negative)", cursor: "pointer",
-            }}
-          >
-            REMOVE BIOMETRIC LOCK
-          </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {showModal && (
         <PasswordConfirmModal

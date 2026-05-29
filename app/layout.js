@@ -7,23 +7,32 @@ import LockScreen from "@/components/lock-screen";
 export const ThemeContext = createContext({ theme: "coral", toggleTheme: () => {} });
 export const useTheme = () => useContext(ThemeContext);
 
-const DEFAULT_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
+const DEFAULT_TIMEOUT_MS = 5 * 60 * 1000;
+
+// Detect PWA standalone mode
+function isPWA() {
+  if (typeof window === "undefined") return false;
+  return window.matchMedia("(display-mode: standalone)").matches ||
+    window.navigator.standalone === true;
+}
 
 export default function RootLayout({ children }) {
-  const theme      = "coral";
+  const theme       = "coral";
   const toggleTheme = () => {};
-  const [locked, setLocked]     = useState(false);
-  const [biometricEnabled, setBiometricEnabled] = useState(false);
+  const [locked, setLocked]           = useState(false);
+  const [biometricEnabled, setBiometric] = useState(false);
   const timeoutRef = useRef(null);
   const timeoutMs  = useRef(DEFAULT_TIMEOUT_MS);
 
-  // Load biometric + timeout settings
   useEffect(() => {
+    // Only enable lock in PWA mode
+    if (!isPWA()) return;
+
     fetch("/api/settings", { cache: "no-store" })
       .then(r => r.json())
       .then(({ settings }) => {
         const enabled = settings.webauthn_enabled === "1";
-        setBiometricEnabled(enabled);
+        setBiometric(enabled);
         const mins = parseInt(settings.lock_timeout_mins || "5", 10);
         const valid = [2, 5, 10].includes(mins) ? mins : 5;
         timeoutMs.current = valid * 60 * 1000;
@@ -37,7 +46,6 @@ export default function RootLayout({ children }) {
     timeoutRef.current = setTimeout(() => setLocked(true), timeoutMs.current);
   }, [biometricEnabled]);
 
-  // Start timer on mount, reset on activity
   useEffect(() => {
     if (!biometricEnabled) return;
     const events = ["touchstart", "touchmove", "click", "keydown", "scroll"];
@@ -58,17 +66,14 @@ export default function RootLayout({ children }) {
     <html lang="en" data-theme={theme}>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-        {/* PWA — Android */}
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#0F0F0F" />
         <meta name="mobile-web-app-capable" content="yes" />
-        {/* PWA — iOS */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="Vaulted" />
         <link rel="apple-touch-icon" href="/icons/icon-152x152.png" />
         <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192x192.png" />
-        {/* Favicon */}
         <link rel="icon" type="image/svg+xml" href="/icons/icon.svg" />
         <link rel="icon" type="image/png" sizes="96x96" href="/icons/icon-96x96.png" />
         <title>Vaulted</title>
