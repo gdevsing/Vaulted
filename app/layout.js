@@ -6,9 +6,15 @@ import "./globals.css";
 export const ThemeContext = createContext({ theme: "dark", toggleTheme: () => {} });
 export const useTheme = () => useContext(ThemeContext);
 
+// Themes cycle: dark → coral → dark
+const THEMES = ["dark", "coral"];
+
 export default function RootLayout({ children }) {
   const [theme, setTheme] = useState("dark");
-  const toggleTheme = () => setTheme(t => t === "dark" ? "light" : "dark");
+  const toggleTheme = () => setTheme(t => {
+    const idx = THEMES.indexOf(t);
+    return THEMES[(idx + 1) % THEMES.length];
+  });
 
   return (
     <html lang="en" data-theme={theme}>
