@@ -16,20 +16,29 @@ export default function DonutChart({ totals }) {
 
   const total = items.reduce((s, i) => s + i.value, 0);
 
-  // SVG donut
+  // SVG donut — proper segment positioning
+  // Each segment is a circle with strokeDasharray to show just its arc,
+  // rotated by its cumulative start angle via transform="rotate()"
   const cx = 60, cy = 60, r = 46, inner = 30;
+  const strokeWidth = r - inner;
   const circumference = 2 * Math.PI * r;
-  let offset = 0;
-  const gap = 1.5; // degrees between segments
+  const gap = 2; // gap in degrees between segments
+
+  let cumulativeDeg = -90; // start at 12 o'clock
 
   const segments = items.map(item => {
-    const pct = item.value / total;
-    const degrees = pct * 360 - gap;
-    const len = (degrees / 360) * circumference;
-    const space = (gap / 360) * circumference;
-    const seg = { ...item, pct, dashArray: `${len} ${circumference - len}`, dashOffset: -offset * circumference / 360 };
-    offset += pct * 360;
-    return seg;
+    const pct = total > 0 ? item.value / total : 0;
+    const degrees = pct * 360;
+    const arcDeg = Math.max(0, degrees - gap);
+    const arcLen = (arcDeg / 360) * circumference;
+    const startDeg = cumulativeDeg;
+    cumulativeDeg += degrees;
+    return {
+      ...item,
+      pct,
+      startDeg,
+      arcLen,
+    };
   });
 
   return (
@@ -37,19 +46,29 @@ export default function DonutChart({ totals }) {
       {/* Donut */}
       <div style={{ position: "relative", flexShrink: 0 }}>
         <svg width={120} height={120} viewBox="0 0 120 120">
+          {/* Background ring */}
+          <circle
+            cx={cx} cy={cy} r={r}
+            fill="none"
+            stroke="rgba(255,255,255,0.05)"
+            strokeWidth={strokeWidth}
+          />
           {segments.map(seg => (
-            <circle
-              key={seg.key}
-              cx={cx} cy={cy} r={r}
-              fill="none"
-              stroke={seg.color}
-              strokeWidth={r - inner}
-              strokeDasharray={seg.dashArray}
-              strokeDashoffset={seg.dashOffset}
-              style={{ transition: "all 0.6s cubic-bezier(0.16,1,0.3,1)" }}
-            />
+            seg.arcLen > 0 && (
+              <circle
+                key={seg.key}
+                cx={cx} cy={cy} r={r}
+                fill="none"
+                stroke={seg.color}
+                strokeWidth={strokeWidth}
+                strokeDasharray={`${seg.arcLen} ${circumference}`}
+                strokeDashoffset={0}
+                transform={`rotate(${seg.startDeg} ${cx} ${cy})`}
+                style={{ transition: "all 0.6s cubic-bezier(0.16,1,0.3,1)" }}
+              />
+            )
           ))}
-          {/* Centre */}
+          {/* Centre fill */}
           <circle cx={cx} cy={cy} r={inner} fill="#0F0F0F" />
         </svg>
         {/* Centre text */}
