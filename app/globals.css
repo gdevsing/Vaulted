@@ -112,7 +112,7 @@ body {
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 3px 14px 14px 3px;
+  border-radius: 3px 16px 16px 3px;
   box-shadow: 0 8px 28px rgba(0,0,0,0.22);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
