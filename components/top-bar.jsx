@@ -2,11 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import Logo from "@/components/logo";
-import { ThemeToggle } from "@/components/ui/primitives";
-import { useTheme } from "@/app/layout";
 
 export default function TopBar({ right, onHelpOpen }) {
-  const { theme, toggleTheme } = useTheme();
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -29,7 +26,6 @@ export default function TopBar({ right, onHelpOpen }) {
             ?
           </button>
         )}
-        <ThemeToggle theme={theme} onToggle={toggleTheme} />
         <button onClick={handleLogout} className="btn-press" style={{
           background: "none", border: "1px solid var(--border)",
           borderRadius: "2px 7px 7px 2px", padding: "4px 10px",
