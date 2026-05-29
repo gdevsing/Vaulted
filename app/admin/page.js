@@ -151,7 +151,7 @@ function PasswordConfirmModal({ onConfirm, onCancel, error }) {
       <div style={{
         position:"fixed", top:"50%", left:"50%",
         transform:"translate(-50%,-50%)",
-        background: theme === "dark" ? "#1A1614" : "#EDE8DF",
+        background: "#1A1614",
         border:"1px solid var(--border-strong)",
         borderRadius:"3px 16px 16px 3px",
         padding:"24px 24px 20px",
