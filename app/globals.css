@@ -168,7 +168,8 @@ body {
 }
 
 /* Desktop ── */
-@media (min-width: 768px) {
+/* Desktop only — (hover: hover) excludes touch devices like iPhone/iPad */
+@media (min-width: 768px) and (hover: hover) {
   body { zoom: 1.15; }
   .page {
     max-width: 720px;
@@ -176,7 +177,7 @@ body {
   }
 }
 
-@media (min-width: 1200px) {
+@media (min-width: 1200px) and (hover: hover) {
   body { zoom: 1.3; }
 }
 
