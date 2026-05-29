@@ -4,8 +4,8 @@
   "description": "Self-hosted net worth tracker. No bank APIs. Your data stays on your server.",
   "start_url": "/dashboard",
   "display": "standalone",
-  "background_color": "#0C0A08",
-  "theme_color": "#0C0A08",
+  "background_color": "#0F0F0F",
+  "theme_color": "#FF4757",
   "orientation": "portrait",
   "icons": [
     { "src": "/icons/icon-72x72.png",   "sizes": "72x72",   "type": "image/png" },
