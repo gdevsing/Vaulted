@@ -68,7 +68,27 @@ function NetWorthHero({ total, history, filtered }) {
       padding: "22px 20px 18px",
       background: "linear-gradient(135deg, #FF6B6B 0%, #FF4757 55%, #C0392B 100%)",
       borderColor: "transparent",
+      position: "relative",
+      overflow: "hidden",
     }}>
+      {/* Decorative circle — top right */}
+      <div style={{
+        position: "absolute",
+        top: -40, right: -40,
+        width: 160, height: 160,
+        borderRadius: "50%",
+        background: "rgba(255,255,255,0.08)",
+        pointerEvents: "none",
+      }} />
+      {/* Decorative circle — bottom left */}
+      <div style={{
+        position: "absolute",
+        bottom: -24, left: -24,
+        width: 90, height: 90,
+        borderRadius: "50%",
+        background: "rgba(255,255,255,0.05)",
+        pointerEvents: "none",
+      }} />
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
         <div className="label" style={{ color: "rgba(255,255,255,0.55)" }}>Total Net Worth</div>
         {filtered && <div style={{ fontFamily: "var(--font-mono)", fontSize: 8, letterSpacing: "0.1em", padding: "2px 6px", borderRadius: "2px 5px 5px 2px", background: "rgba(255,210,74,0.15)", color: "var(--gold)" }}>FILTERED</div>}
