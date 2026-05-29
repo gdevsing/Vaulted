@@ -66,16 +66,14 @@ function NetWorthHero({ total, history, filtered }) {
   return (
     <div className="card card-glow fade-up" style={{
       padding: "22px 20px 18px",
-      background: theme === "dark"
-        ? "linear-gradient(135deg, rgba(255,210,80,0.07) 0%, rgba(255,255,255,0.02) 60%)"
-        : "linear-gradient(135deg, rgba(180,120,0,0.06) 0%, rgba(26,22,20,0.02) 60%)",
-      borderColor: "rgba(255,210,74,0.2)",
+      background: "linear-gradient(135deg, #FF6B6B 0%, #FF4757 55%, #C0392B 100%)",
+      borderColor: "transparent",
     }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-        <div className="label">Total Net Worth</div>
+        <div className="label" style={{ color: "rgba(255,255,255,0.55)" }}>Total Net Worth</div>
         {filtered && <div style={{ fontFamily: "var(--font-mono)", fontSize: 8, letterSpacing: "0.1em", padding: "2px 6px", borderRadius: "2px 5px 5px 2px", background: "rgba(255,210,74,0.15)", color: "var(--gold)" }}>FILTERED</div>}
       </div>
-      <div style={{ fontFamily: "var(--font-display)", fontSize: 38, letterSpacing: "0.02em", color: "var(--ink)", lineHeight: 1, marginBottom: 8 }}>
+      <div style={{ fontFamily: "var(--font-display)", fontSize: 38, letterSpacing: "0.02em", color: "#FFFFFF", lineHeight: 1, marginBottom: 8 }}>
         {fmt(total)}
       </div>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -95,12 +93,12 @@ function NetWorthHero({ total, history, filtered }) {
           </div>
         )}
         {!filtered && history?.length > 1 && (
-          <Sparkline data={history.map(h => ({ value: h.total || 0 }))} color={isUp ? "#7DD68A" : "#E87070"} height={36} width={90} />
+          <Sparkline data={history.map(h => ({ value: h.total || 0 }))} color="rgba(255,255,255,0.9)" height={36} width={90} />
         )}
       </div>
       <div style={{ marginTop: 14 }}>
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-          <div className="label">Progress to $100k</div>
+          <div className="label" style={{ color: "rgba(255,255,255,0.5)" }}>Progress to $100k</div>
           <div className="label">{((total / 100000) * 100).toFixed(1)}%</div>
         </div>
         <div className="xp-bar-track">
