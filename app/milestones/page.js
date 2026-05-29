@@ -215,9 +215,27 @@ export default function MilestonesPage() {
         {/* Hero — next milestone */}
         <div className="card card-glow fade-up" style={{
           padding: "16px 16px",
-          background: "linear-gradient(135deg, rgba(255,71,87,0.12) 0%, rgba(255,255,255,0.02) 60%)",
-          borderColor: "rgba(255,71,87,0.25)",
+          background: "linear-gradient(135deg, #FF6B6B 0%, #FF4757 55%, #C0392B 100%)",
+          borderColor: "transparent",
+          position: "relative",
+          overflow: "hidden",
         }}>
+          <div style={{
+            position: "absolute",
+            top: -40, right: -40,
+            width: 160, height: 160,
+            borderRadius: "50%",
+            background: "rgba(255,255,255,0.08)",
+            pointerEvents: "none",
+          }} />
+          <div style={{
+            position: "absolute",
+            bottom: -24, left: -24,
+            width: 90, height: 90,
+            borderRadius: "50%",
+            background: "rgba(255,255,255,0.05)",
+            pointerEvents: "none",
+          }} />
           <div className="label" style={{ marginBottom: 8, color: "rgba(255,255,255,0.55)" }}>Next Milestone</div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 10 }}>
             <div>
@@ -229,10 +247,10 @@ export default function MilestonesPage() {
               </div>
             </div>
             <div style={{ textAlign: "right" }}>
-              <div style={{ fontFamily: "var(--font-display)", fontSize: 20, color: "var(--gold)", lineHeight: 1 }}>
+              <div style={{ fontFamily: "var(--font-display)", fontSize: 20, color: "#FFFFFF", lineHeight: 1, position: "relative" }}>
                 {nextPct.toFixed(1)}%
               </div>
-              <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--ink2)", marginTop: 3, letterSpacing: "0.08em", whiteSpace: "nowrap" }}>
+              <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "rgba(255,255,255,0.55)", marginTop: 3, letterSpacing: "0.08em", whiteSpace: "nowrap", position: "relative" }}>
                 {fmt(nextMilestone - current)} to go
               </div>
             </div>
