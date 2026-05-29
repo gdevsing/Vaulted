@@ -52,7 +52,7 @@ export default function AccountCard({ account, delay = 0 }) {
             border: `1px solid ${color}35`,
             textTransform: "uppercase",
           }}>
-            {account.owner === "H" ? "H" : "W"}
+            {account.ownerLabel || account.owner}
           </div>
           {account.group && (
             <div style={{
