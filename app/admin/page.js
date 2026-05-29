@@ -65,7 +65,8 @@ const CREDENTIAL_GROUPS = [
     icon: "⊞",
     description: "General app configuration",
     fields: [
-      { key: "app_public_url", label: "Public URL",     secret: false, placeholder: "https://your-domain.com",    help: "Your app's public domain. Used in notification click links so tapping the alert opens your app directly." },
+      { key: "app_public_url",      label: "Public URL",          secret: false, placeholder: "https://your-domain.com", help: "Your app's public domain. Used in notification click links so tapping the alert opens your app directly." },
+      { key: "lock_timeout_mins", label: "Auto-lock timeout (mins)", secret: false, placeholder: "5", help: "Minutes of inactivity before the app locks. Options: 2, 5 or 10. Only applies if biometric lock is enabled." },
       { key: "app_password",      label: "Login Password", secret: true, placeholder: "Choose a strong password" },
       { key: "notify_day",   label: "Notify Day",     secret: false, placeholder: "sunday" },
       { key: "ntfy_topic",   label: "ntfy Topic",     secret: false, placeholder: "vaulted-sync" },
@@ -1000,6 +1001,188 @@ function RestoreDbCard() {
   );
 }
 
+
+// ─── Biometric lock card ──────────────────────────────────────────────────────
+function BiometricCard() {
+  const [status,    setStatus]    = useState(null); // null | "registering" | "registered" | "removing" | "error"
+  const [message,   setMessage]   = useState("");
+  const [isEnabled, setIsEnabled] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [pwdError,  setPwdError]  = useState(false);
+  const [action,    setAction]    = useState(null); // "register" | "remove"
+
+  useEffect(() => {
+    fetch("/api/settings")
+      .then(r => r.json())
+      .then(({ settings }) => setIsEnabled(settings.webauthn_enabled === "1"))
+      .catch(() => {});
+  }, []);
+
+  const supported = typeof window !== "undefined" &&
+    window.PublicKeyCredential !== undefined;
+
+  const handleAction = (act) => {
+    setAction(act);
+    setPwdError(false);
+    setShowModal(true);
+  };
+
+  const handleConfirm = async (password) => {
+    const res = await fetch("/api/verify-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password }),
+    });
+    const { valid } = await res.json();
+    if (!valid) { setPwdError(true); return; }
+    setShowModal(false);
+
+    if (action === "remove") {
+      setStatus("removing");
+      await fetch("/api/webauthn/register", { method: "DELETE" });
+      setIsEnabled(false);
+      setStatus(null);
+      setMessage("Biometric lock removed.");
+      return;
+    }
+
+    // Register
+    setStatus("registering");
+    setMessage("");
+    try {
+      // Phase 1 — get options
+      const startRes = await fetch("/api/webauthn/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phase: "start" }),
+      });
+      const options = await startRes.json();
+
+      const challengeBuffer = Uint8Array.from(
+        atob(options.challenge.replace(/-/g, "+").replace(/_/g, "/")),
+        c => c.charCodeAt(0)
+      );
+      const userIdBuffer = Uint8Array.from(
+        atob(options.user.id.replace(/-/g, "+").replace(/_/g, "/")),
+        c => c.charCodeAt(0)
+      );
+
+      // Phase 2 — browser biometric prompt
+      const credential = await navigator.credentials.create({
+        publicKey: {
+          ...options,
+          challenge: challengeBuffer,
+          user: { ...options.user, id: userIdBuffer },
+        },
+      });
+
+      // Phase 3 — finish
+      const finishRes = await fetch("/api/webauthn/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phase: "finish",
+          credential: {
+            id:    credential.id,
+            rawId: btoa(String.fromCharCode(...new Uint8Array(credential.rawId))),
+            type:  credential.type,
+            response: {
+              attestationObject: btoa(String.fromCharCode(...new Uint8Array(credential.response.attestationObject))),
+              clientDataJSON:    btoa(String.fromCharCode(...new Uint8Array(credential.response.clientDataJSON))),
+            },
+          },
+        }),
+      });
+
+      const result = await finishRes.json();
+      if (result.ok) {
+        setIsEnabled(true);
+        setStatus("registered");
+        setMessage("Biometric lock enabled on this device.");
+      } else {
+        throw new Error(result.error || "Registration failed");
+      }
+    } catch (err) {
+      setStatus("error");
+      setMessage(err.name === "NotAllowedError" ? "Cancelled by user." : err.message);
+    }
+  };
+
+  return (
+    <div className="card fade-up" style={{ padding: "18px 20px", borderLeft: `3px solid ${isEnabled ? "var(--positive)" : "var(--border-strong)"}` }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
+            <span style={{ fontSize: 16 }}>{isEnabled ? "🔒" : "🔓"}</span>
+            <span style={{ fontFamily: "var(--font-display)", fontSize: 14, color: "var(--ink)" }}>Biometric Lock</span>
+            {isEnabled && <span style={{ fontFamily: "var(--font-mono)", fontSize: 8, letterSpacing: "0.1em", padding: "1px 6px", borderRadius: "2px 6px 6px 2px", background: "rgba(125,214,138,0.15)", color: "var(--positive)", border: "1px solid rgba(125,214,138,0.25)" }}>ENABLED</span>}
+          </div>
+          <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--ink2)", letterSpacing: "0.06em", lineHeight: 1.6 }}>
+            {isEnabled
+              ? "App locks after inactivity. Unlock with Face ID or fingerprint."
+              : "Lock the app after inactivity. Requires Face ID or fingerprint to unlock."}
+          </div>
+        </div>
+      </div>
+
+      {!supported && (
+        <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--negative)", letterSpacing: "0.06em", marginBottom: 12 }}>
+          ⚠ WebAuthn not supported on this browser/device
+        </div>
+      )}
+
+      {message && (
+        <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: status === "error" ? "var(--negative)" : "var(--positive)", letterSpacing: "0.06em", marginBottom: 12 }}>
+          {message}
+        </div>
+      )}
+
+      <div style={{ display: "flex", gap: 8 }}>
+        {!isEnabled && supported && (
+          <button
+            onClick={() => handleAction("register")}
+            disabled={status === "registering"}
+            className="btn-press"
+            style={{
+              flex: 1, padding: "10px",
+              background: "rgba(255,71,87,0.85)", border: "none",
+              borderRadius: "2px 9px 9px 2px",
+              fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.1em",
+              color: "#fff", cursor: "pointer",
+            }}
+          >
+            {status === "registering" ? "REGISTERING..." : "REGISTER THIS DEVICE"}
+          </button>
+        )}
+        {isEnabled && (
+          <button
+            onClick={() => handleAction("remove")}
+            className="btn-press"
+            style={{
+              flex: 1, padding: "10px",
+              background: "transparent",
+              border: "1px solid rgba(232,112,112,0.4)",
+              borderRadius: "2px 9px 9px 2px",
+              fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.1em",
+              color: "var(--negative)", cursor: "pointer",
+            }}
+          >
+            REMOVE BIOMETRIC LOCK
+          </button>
+        )}
+      </div>
+
+      {showModal && (
+        <PasswordConfirmModal
+          onConfirm={handleConfirm}
+          onCancel={() => { setShowModal(false); setPwdError(false); }}
+          error={pwdError}
+        />
+      )}
+    </div>
+  );
+}
+
 // ─── Tab bar ──────────────────────────────────────────────────────────────
 function TabBar({ active, onChange }) {
   const tabs = [
@@ -1178,6 +1361,7 @@ export default function AdminPage() {
                 <OwnerLabelsCard settings={settings} onSave={handleSaveSettings} />
                 <CronStatusCard />
                 <NotifyStatusCard />
+                <BiometricCard />
                 <RestoreDbCard />
                 {CREDENTIAL_GROUPS.map(group => (
                   <CredentialGroup
