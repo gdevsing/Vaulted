@@ -78,7 +78,7 @@ function CustomTooltip({ active, payload, label, theme }) {
 
 function StatPill({ label, value, sub, color }) {
   return (
-    <div className="card" style={{ padding: "9px 11px", flex: 1 }}>
+    <div className="card" style={{ padding: "9px 11px", flex: 1, borderLeft: "2px solid rgba(255,71,87,0.4)" }}>
       <div className="label" style={{ marginBottom: 3, fontSize: 8 }}>{label}</div>
       <div style={{ fontFamily: "var(--font-display)", fontSize: 13, color: color || "var(--ink)", lineHeight: 1, marginBottom: sub ? 2 : 0 }}>
         {value}
