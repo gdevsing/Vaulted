@@ -212,16 +212,20 @@ export default function MilestonesPage() {
           <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--ink2)", letterSpacing: "0.08em" }}>Goals, projections & achievements</div>
         </div>
 
-        {/* Hero — next milestone */}
-        <div className="card card-glow fade-up" style={{
-          padding: "16px 16px",
-          background: "linear-gradient(135deg, rgba(255,71,87,0.12) 0%, rgba(255,255,255,0.02) 60%)",
-          borderColor: "rgba(255,71,87,0.25)",
+        {/* Hero — next milestone — full coral gradient matching dashboard */}
+        <div className="fade-up" style={{
+          padding: "20px 18px 18px",
+          background: "linear-gradient(135deg, #FF6B6B 0%, #FF4757 55%, #C0392B 100%)",
+          borderRadius: "3px 20px 20px 3px",
+          boxShadow: "0 8px 32px rgba(255,71,87,0.3), 0 2px 8px rgba(0,0,0,0.25)",
+          position: "relative", overflow: "hidden",
         }}>
-          <div className="label" style={{ marginBottom: 8, color: "rgba(255,255,255,0.55)" }}>Next Milestone</div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 10 }}>
+          <div style={{ position:"absolute", top:-50, right:-50, width:180, height:180, borderRadius:"50%", background:"rgba(255,255,255,0.07)", pointerEvents:"none" }} />
+          <div style={{ position:"absolute", top:-10, right:50, width:90, height:90, borderRadius:"50%", background:"rgba(255,255,255,0.04)", pointerEvents:"none" }} />
+          <div className="label" style={{ marginBottom: 8, color: "rgba(255,255,255,0.55)", position:"relative" }}>Next Milestone</div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 12, position:"relative" }}>
             <div>
-              <div style={{ fontFamily: "var(--font-display)", fontSize: 24, color: "#FFFFFF", lineHeight: 1, marginBottom: 3 }}>
+              <div style={{ fontFamily: "var(--font-display)", fontSize: 26, color: "#FFFFFF", lineHeight: 1, marginBottom: 4 }}>
                 {loading ? "—" : <CountUp target={current} duration={1000} />}
               </div>
               <div style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontSize: 12, color: "rgba(255,255,255,0.5)" }}>
@@ -229,16 +233,16 @@ export default function MilestonesPage() {
               </div>
             </div>
             <div style={{ textAlign: "right" }}>
-              <div style={{ fontFamily: "var(--font-display)", fontSize: 20, color: "var(--gold)", lineHeight: 1 }}>
+              <div style={{ fontFamily: "var(--font-display)", fontSize: 22, color: "#FFFFFF", lineHeight: 1 }}>
                 {nextPct.toFixed(1)}%
               </div>
-              <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--ink2)", marginTop: 3, letterSpacing: "0.08em", whiteSpace: "nowrap" }}>
+              <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "rgba(255,255,255,0.5)", marginTop: 3, letterSpacing: "0.08em", whiteSpace: "nowrap" }}>
                 {fmt(nextMilestone - current)} to go
               </div>
             </div>
           </div>
-          <div className="xp-bar-track" style={{ height: 8, background: "rgba(0,0,0,0.2)" }}>
-            <div className="xp-bar-fill" style={{ "--xp-width": `${nextPct}%`, width: `${nextPct}%`, height: "100%", background: "rgba(255,255,255,0.9)", boxShadow: "none" }} />
+          <div style={{ background: "rgba(0,0,0,0.2)", borderRadius: 3, height: 5, overflow: "hidden", position:"relative" }}>
+            <div style={{ height:"100%", width:`${nextPct}%`, background:"rgba(255,255,255,0.85)", borderRadius:3 }} />
           </div>
         </div>
 
