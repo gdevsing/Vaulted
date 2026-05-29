@@ -46,6 +46,47 @@
   --super:        #B85A00;
 }
 
+/* ─── Coral theme — Midnight Coral ── */
+[data-theme="coral"] {
+  --bg:           #0F0F0F;
+  --surface:      linear-gradient(145deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.018) 100%);
+  --surface-solid:#1A1A1A;
+  --border:       rgba(255,255,255,0.07);
+  --border-strong:rgba(255,255,255,0.12);
+  --ink:          #F0F0F0;
+  --ink2:         #666666;
+  --ink3:         #1E1E1E;
+  --gold:         #FF4757;
+  --gold-dark:    #C03040;
+  --positive:     #7DD68A;
+  --negative:     #E87070;
+  --cash:         #60A5FA;
+  --shares:       #4ADE80;
+  --crypto:       #C084FC;
+  --super:        #FB923C;
+}
+
+/* ─── Coral hero card gradient — used by dashboard NW card in coral theme ── */
+[data-theme="coral"] .nw-hero-card {
+  background: linear-gradient(135deg, #FF6B6B 0%, #FF4757 60%, #C0392B 100%) !important;
+  border: none !important;
+}
+[data-theme="coral"] .nw-hero-card .nw-amount,
+[data-theme="coral"] .nw-hero-card .nw-eyebrow,
+[data-theme="coral"] .nw-hero-card .nw-change,
+[data-theme="coral"] .nw-hero-card .nw-change-pill {
+  color: rgba(255,255,255,0.9) !important;
+}
+[data-theme="coral"] .nw-hero-card .nw-change-pill {
+  background: rgba(255,255,255,0.18) !important;
+}
+[data-theme="coral"] .nw-hero-card .progress-track {
+  background: rgba(255,255,255,0.15) !important;
+}
+[data-theme="coral"] .nw-hero-card .progress-fill {
+  background: rgba(255,255,255,0.8) !important;
+}
+
 /* ─── Theme transition ── */
 *, *::before, *::after {
   transition: background-color 0.3s ease, color 0.3s ease, border-color 0.25s ease;
