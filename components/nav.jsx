@@ -193,14 +193,14 @@ function DesktopSidebar({ onHelpOpen }) {
           cursor: "pointer", width: "100%", position: "relative",
         }}>
           <span style={{ fontSize: 14, color: "var(--ink2)", width: 20, textAlign: "center" }}>
-            {theme === "dark" ? "☀" : "◑"}
+            {"☀"}
           </span>
           {!collapsed && (
             <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.1em", color: "var(--ink2)" }}>
-              {theme === "dark" ? "LIGHT" : "DARK"}
+              {"LIGHT"}
             </span>
           )}
-          {collapsed && <div className="sidebar-tooltip">{theme === "dark" ? "LIGHT MODE" : "DARK MODE"}</div>}
+          {collapsed && <div className="sidebar-tooltip">{"LIGHT MODE"}</div>}
         </button>
 
         {/* Logout */}
@@ -338,7 +338,7 @@ export function HelpDrawer({ open, onClose }) {
       <div style={{
         position: "fixed",
         zIndex: 200,
-        background: theme === "dark" ? "#141210" : "#EDE8DF",
+        background: "#141210",
         borderTop: "1px solid var(--border)",
         overflowY: "auto",
       }}
@@ -350,7 +350,7 @@ export function HelpDrawer({ open, onClose }) {
           padding: "18px 20px 14px",
           borderBottom: "1px solid var(--border)",
           position: "sticky", top: 0,
-          background: theme === "dark" ? "#141210" : "#EDE8DF",
+          background: "#141210",
           zIndex: 1,
         }}>
           <div>
