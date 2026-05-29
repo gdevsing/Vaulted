@@ -54,7 +54,7 @@ function CustomTooltip({ active, payload, label, theme }) {
   if (!active || !payload?.length) return null;
   return (
     <div style={{
-      background: theme === "dark" ? "#1A1614" : "#EDE8DF",
+      background: (theme === "dark" || theme === "coral") ? "#1A1614" : "#EDE8DF",
       border: "1px solid var(--border-strong)",
       borderRadius: "3px 10px 10px 3px",
       padding: "10px 14px",
@@ -162,10 +162,10 @@ export default function TrendsPage() {
   const sharesColor = ASSETS.shares[theme];
   const cryptoColor = ASSETS.crypto[theme];
   const superColor  = ASSETS.super[theme];
-  const lineColor   = isUp ? (theme === "dark" ? "#7DD68A" : "#1A7A38") : (theme === "dark" ? "#E87070" : "#C03030");
-  const goldColor   = theme === "dark" ? "#FFD24A" : "#B87800";
-  const gridColor   = theme === "dark" ? "rgba(255,255,255,0.05)" : "rgba(26,22,20,0.07)";
-  const axisColor   = theme === "dark" ? "#3A3028" : "#C8C0B4";
+  const lineColor   = isUp ? ((theme === "dark" || theme === "coral") ? "#7DD68A" : "#1A7A38") : ((theme === "dark" || theme === "coral") ? "#E87070" : "#C03030");
+  const goldColor   = (theme === "dark" || theme === "coral") ? "#FFD24A" : "#B87800";
+  const gridColor   = (theme === "dark" || theme === "coral") ? "rgba(255,255,255,0.05)" : "rgba(26,22,20,0.07)";
+  const axisColor   = (theme === "dark" || theme === "coral") ? "#3A3028" : "#C8C0B4";
 
   const isEmpty = !loading && historyData.length === 0;
 
