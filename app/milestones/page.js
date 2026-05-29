@@ -218,13 +218,13 @@ export default function MilestonesPage() {
           background: "linear-gradient(135deg, rgba(255,71,87,0.12) 0%, rgba(255,255,255,0.02) 60%)",
           borderColor: "rgba(255,71,87,0.25)",
         }}>
-          <div className="label" style={{ marginBottom: 8 }}>Next Milestone</div>
+          <div className="label" style={{ marginBottom: 8, color: "rgba(255,255,255,0.55)" }}>Next Milestone</div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 10 }}>
             <div>
-              <div style={{ fontFamily: "var(--font-display)", fontSize: 24, color: "var(--ink)", lineHeight: 1, marginBottom: 3 }}>
+              <div style={{ fontFamily: "var(--font-display)", fontSize: 24, color: "#FFFFFF", lineHeight: 1, marginBottom: 3 }}>
                 {loading ? "—" : <CountUp target={current} duration={1000} />}
               </div>
-              <div style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontSize: 12, color: "var(--ink2)" }}>
+              <div style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontSize: 12, color: "rgba(255,255,255,0.5)" }}>
                 of {fmt(nextMilestone)} target
               </div>
             </div>
@@ -237,8 +237,8 @@ export default function MilestonesPage() {
               </div>
             </div>
           </div>
-          <div className="xp-bar-track" style={{ height: 8 }}>
-            <div className="xp-bar-fill" style={{ "--xp-width": `${nextPct}%`, width: `${nextPct}%`, height: "100%" }} />
+          <div className="xp-bar-track" style={{ height: 8, background: "rgba(0,0,0,0.2)" }}>
+            <div className="xp-bar-fill" style={{ "--xp-width": `${nextPct}%`, width: `${nextPct}%`, height: "100%", background: "rgba(255,255,255,0.9)", boxShadow: "none" }} />
           </div>
         </div>
 

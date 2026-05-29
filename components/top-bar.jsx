@@ -27,10 +27,10 @@ export default function TopBar({ right, onHelpOpen }) {
           </button>
         )}
         <button onClick={handleLogout} className="btn-press" style={{
-          background: "none", border: "1px solid var(--border)",
+          background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)",
           borderRadius: "2px 7px 7px 2px", padding: "4px 10px",
           fontFamily: "var(--font-mono)", fontSize: 9,
-          letterSpacing: "0.1em", color: "var(--ink2)", cursor: "pointer",
+          letterSpacing: "0.1em", color: "rgba(255,255,255,0.7)", cursor: "pointer",
         }}>
           LOGOUT
         </button>

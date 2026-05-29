@@ -50,7 +50,7 @@ export default function DonutChart({ totals }) {
             />
           ))}
           {/* Centre */}
-          <circle cx={cx} cy={cy} r={inner} fill={theme === "dark" ? "#0C0A08" : "#F5F0E8"} />
+          <circle cx={cx} cy={cy} r={inner} fill="#0F0F0F" />
         </svg>
         {/* Centre text */}
         <div style={{
