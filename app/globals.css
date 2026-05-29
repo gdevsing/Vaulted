@@ -87,6 +87,12 @@
   background: rgba(255,255,255,0.8) !important;
 }
 
+/* ─── Coral — donut chart centre + chart lines ── */
+[data-theme="coral"] .recharts-line path,
+[data-theme="coral"] .recharts-area path {
+  stroke: #FF6B6B !important;
+}
+
 /* ─── Theme transition ── */
 *, *::before, *::after {
   transition: background-color 0.3s ease, color 0.3s ease, border-color 0.25s ease;
