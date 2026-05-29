@@ -57,33 +57,51 @@ function OwnerFilter({ active, onChange, owners }) {
 }
 
 function NetWorthHero({ total, history, filtered }) {
-  const { theme } = useTheme();
-  const prev  = history?.length > 1 ? history[history.length - 2]?.total : total;
-  const change = total - (prev || total);
+  const prev     = history?.length > 1 ? history[history.length - 2]?.total : total;
+  const change   = total - (prev || total);
   const changePct = prev ? ((change / prev) * 100) : 0;
-  const isUp = change >= 0;
+  const isUp     = change >= 0;
 
   return (
-    <div className="card card-glow fade-up" style={{
+    <div className="fade-up" style={{
       padding: "22px 20px 18px",
       background: "linear-gradient(135deg, #FF6B6B 0%, #FF4757 55%, #C0392B 100%)",
-      borderColor: "transparent",
+      borderRadius: "3px 20px 20px 3px",
+      boxShadow: "0 8px 32px rgba(255,71,87,0.3), 0 2px 8px rgba(0,0,0,0.25)",
+      position: "relative",
+      overflow: "hidden",
     }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+      {/* Decorative circles — top right */}
+      <div style={{
+        position: "absolute", top: -50, right: -50,
+        width: 180, height: 180, borderRadius: "50%",
+        background: "rgba(255,255,255,0.07)",
+        pointerEvents: "none",
+      }} />
+      <div style={{
+        position: "absolute", top: -10, right: 50,
+        width: 90, height: 90, borderRadius: "50%",
+        background: "rgba(255,255,255,0.04)",
+        pointerEvents: "none",
+      }} />
+
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, position: "relative" }}>
         <div className="label" style={{ color: "rgba(255,255,255,0.55)" }}>Total Net Worth</div>
-        {filtered && <div style={{ fontFamily: "var(--font-mono)", fontSize: 8, letterSpacing: "0.1em", padding: "2px 6px", borderRadius: "2px 5px 5px 2px", background: "rgba(255,210,74,0.15)", color: "var(--gold)" }}>FILTERED</div>}
+        {filtered && <div style={{ fontFamily: "var(--font-mono)", fontSize: 8, letterSpacing: "0.1em", padding: "2px 6px", borderRadius: "2px 5px 5px 2px", background: "rgba(255,255,255,0.18)", color: "rgba(255,255,255,0.9)" }}>FILTERED</div>}
       </div>
-      <div style={{ fontFamily: "var(--font-display)", fontSize: 38, letterSpacing: "0.02em", color: "#FFFFFF", lineHeight: 1, marginBottom: 8 }}>
+
+      <div style={{ fontFamily: "var(--font-display)", fontSize: 38, letterSpacing: "0.02em", color: "#FFFFFF", lineHeight: 1, marginBottom: 10, position: "relative" }}>
         {fmt(total)}
       </div>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", position: "relative" }}>
         {filtered ? (
-          <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--ink2)", letterSpacing: "0.08em" }}>
+          <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "rgba(255,255,255,0.6)", letterSpacing: "0.08em" }}>
             FILTERED VIEW
           </div>
         ) : (
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: isUp ? "var(--positive)" : "var(--negative)", display: "flex", alignItems: "center", gap: 4 }}>
+            <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "rgba(255,255,255,0.9)", display: "flex", alignItems: "center", gap: 4 }}>
               <span>{isUp ? "▲" : "▼"}</span>
               <span>{fmt(Math.abs(change))} this week</span>
             </div>
@@ -93,19 +111,21 @@ function NetWorthHero({ total, history, filtered }) {
           </div>
         )}
         {!filtered && history?.length > 1 && (
-          <Sparkline data={history.map(h => ({ value: h.total || 0 }))} color="rgba(255,255,255,0.9)" height={36} width={90} />
+          <Sparkline data={history.map(h => ({ value: h.total || 0 }))} color="rgba(255,255,255,0.85)" height={36} width={90} />
         )}
       </div>
-      <div style={{ marginTop: 14 }}>
+
+      <div style={{ marginTop: 14, position: "relative" }}>
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
           <div className="label" style={{ color: "rgba(255,255,255,0.5)" }}>Progress to $100k</div>
           <div className="label" style={{ color: "rgba(255,255,255,0.5)" }}>{((total / 100000) * 100).toFixed(1)}%</div>
         </div>
-        <div className="xp-bar-track" style={{ background: "rgba(0,0,0,0.2)" }}>
-          <div className="xp-bar-fill" style={{
-            "--xp-width": `${Math.min((total / 100000) * 100, 100)}%`,
-            background: "rgba(255,255,255,0.9)",
-            boxShadow: "none",
+        <div style={{ background: "rgba(0,0,0,0.2)", borderRadius: 3, height: 5, overflow: "hidden" }}>
+          <div style={{
+            height: "100%",
+            width: `${Math.min((total / 100000) * 100, 100)}%`,
+            background: "rgba(255,255,255,0.85)",
+            borderRadius: 3,
           }} />
         </div>
       </div>
