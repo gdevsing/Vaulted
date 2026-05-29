@@ -136,7 +136,7 @@ export function ThemeToggle({ theme, onToggle }) {
         gap: 6,
       }}
     >
-      {theme === "dark" ? "☀" : "◑"}
+      {"☀"}
     </button>
   );
 }
