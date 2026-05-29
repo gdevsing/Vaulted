@@ -87,7 +87,7 @@ function NetWorthHero({ total, history, filtered }) {
               <span>{isUp ? "▲" : "▼"}</span>
               <span>{fmt(Math.abs(change))} this week</span>
             </div>
-            <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, padding: "2px 7px", borderRadius: "2px 6px 6px 2px", background: isUp ? "rgba(125,214,138,0.12)" : "rgba(232,112,112,0.12)", color: isUp ? "var(--positive)" : "var(--negative)" }}>
+            <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, padding: "2px 7px", borderRadius: "2px 6px 6px 2px", background: "rgba(255,255,255,0.18)", color: "rgba(255,255,255,0.9)" }}>
               {fmtPct(changePct)}
             </div>
           </div>
@@ -99,10 +99,14 @@ function NetWorthHero({ total, history, filtered }) {
       <div style={{ marginTop: 14 }}>
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
           <div className="label" style={{ color: "rgba(255,255,255,0.5)" }}>Progress to $100k</div>
-          <div className="label">{((total / 100000) * 100).toFixed(1)}%</div>
+          <div className="label" style={{ color: "rgba(255,255,255,0.5)" }}>{((total / 100000) * 100).toFixed(1)}%</div>
         </div>
-        <div className="xp-bar-track">
-          <div className="xp-bar-fill" style={{ "--xp-width": `${Math.min((total / 100000) * 100, 100)}%` }} />
+        <div className="xp-bar-track" style={{ background: "rgba(0,0,0,0.2)" }}>
+          <div className="xp-bar-fill" style={{
+            "--xp-width": `${Math.min((total / 100000) * 100, 100)}%`,
+            background: "rgba(255,255,255,0.9)",
+            boxShadow: "none",
+          }} />
         </div>
       </div>
     </div>
