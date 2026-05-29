@@ -66,13 +66,13 @@ function NetWorthHero({ total, history, filtered }) {
   return (
     <div className="card card-glow fade-up" style={{
       padding: "22px 20px 18px",
-      background: theme === "dark"
-        ? "linear-gradient(135deg, rgba(255,210,80,0.07) 0%, rgba(255,255,255,0.02) 60%)"
-        : "linear-gradient(135deg, rgba(180,120,0,0.06) 0%, rgba(26,22,20,0.02) 60%)",
-      borderColor: "rgba(255,210,74,0.2)",
+      background: theme === "coral"
+        ? "linear-gradient(135deg, #FF6B6B 0%, #FF4757 60%, #C0392B 100%)"
+        : "linear-gradient(135deg, rgba(255,210,80,0.07) 0%, rgba(255,255,255,0.02) 60%)",
+      borderColor: theme === "coral" ? "transparent" : "rgba(255,210,74,0.2)",
     }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-        <div className="label">Total Net Worth</div>
+        <div className="label" style={theme === "coral" ? { color: "rgba(255,255,255,0.6)" } : {}}>Total Net Worth</div>
         {filtered && <div style={{ fontFamily: "var(--font-mono)", fontSize: 8, letterSpacing: "0.1em", padding: "2px 6px", borderRadius: "2px 5px 5px 2px", background: "rgba(255,210,74,0.15)", color: "var(--gold)" }}>FILTERED</div>}
       </div>
       <div style={{ fontFamily: "var(--font-display)", fontSize: 38, letterSpacing: "0.02em", color: "var(--ink)", lineHeight: 1, marginBottom: 8 }}>
