@@ -5,56 +5,13 @@
 
 /* ─── CSS Variables — Dark (default) ── */
 :root {
-  --bg:           #0C0A08;
-  --surface:      linear-gradient(145deg, rgba(255,255,255,0.058) 0%, rgba(255,255,255,0.018) 100%);
-  --surface-solid:#141210;
-  --border:       rgba(255,255,255,0.075);
-  --border-strong:rgba(255,255,255,0.13);
-  --ink:          #F0ECE8;
-  --ink2:         #7A7068;
-  --ink3:         #2A2420;
-  --gold:         #FFD24A;
-  --gold-dark:    #C8920A;
-  --positive:     #7DD68A;
-  --negative:     #E87070;
-  --cash:         #60A5FA;
-  --shares:       #4ADE80;
-  --crypto:       #C084FC;
-  --super:        #FB923C;
-  --font-display: 'Audiowide', sans-serif;
-  --font-mono:    'JetBrains Mono', monospace;
-  --font-serif:   'Cormorant Garamond', serif;
-}
-
-/* ─── Light theme — Peach Sorbet ── */
-[data-theme="light"] {
-  --bg:           #FDF6F0;
-  --surface:      linear-gradient(145deg, rgba(80,40,10,0.05) 0%, rgba(80,40,10,0.02) 100%);
-  --surface-solid:#ECD8C8;
-  --border:       rgba(80,40,10,0.08);
-  --border-strong:rgba(80,40,10,0.15);
-  --ink:          #2E1A08;
-  --ink2:         #9A7860;
-  --ink3:         #DCC8B4;
-  --gold:         #9A5400;
-  --gold-dark:    #6A3800;
-  --positive:     #2A6E3A;
-  --negative:     #B83030;
-  --cash:         #1A5A9A;
-  --shares:       #1A7A38;
-  --crypto:       #6040B0;
-  --super:        #B85A00;
-}
-
-/* ─── Coral theme — Midnight Coral ── */
-[data-theme="coral"] {
   --bg:           #0F0F0F;
   --surface:      linear-gradient(145deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.018) 100%);
   --surface-solid:#1A1A1A;
   --border:       rgba(255,255,255,0.07);
   --border-strong:rgba(255,255,255,0.12);
   --ink:          #F0F0F0;
-  --ink2:         #666666;
+  --ink2:         #6A6A6A;
   --ink3:         #1E1E1E;
   --gold:         #FF4757;
   --gold-dark:    #C03040;
@@ -64,27 +21,9 @@
   --shares:       #4ADE80;
   --crypto:       #C084FC;
   --super:        #FB923C;
-}
-
-/* ─── Coral hero card gradient — used by dashboard NW card in coral theme ── */
-[data-theme="coral"] .nw-hero-card {
-  background: linear-gradient(135deg, #FF6B6B 0%, #FF4757 60%, #C0392B 100%) !important;
-  border: none !important;
-}
-[data-theme="coral"] .nw-hero-card .nw-amount,
-[data-theme="coral"] .nw-hero-card .nw-eyebrow,
-[data-theme="coral"] .nw-hero-card .nw-change,
-[data-theme="coral"] .nw-hero-card .nw-change-pill {
-  color: rgba(255,255,255,0.9) !important;
-}
-[data-theme="coral"] .nw-hero-card .nw-change-pill {
-  background: rgba(255,255,255,0.18) !important;
-}
-[data-theme="coral"] .nw-hero-card .progress-track {
-  background: rgba(255,255,255,0.15) !important;
-}
-[data-theme="coral"] .nw-hero-card .progress-fill {
-  background: rgba(255,255,255,0.8) !important;
+  --font-display: 'Audiowide', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+  --font-serif:   'Cormorant Garamond', serif;
 }
 
 /* ─── Theme transition ── */
@@ -185,7 +124,7 @@ body {
 }
 
 .card-glow {
-  box-shadow: 0 0 40px rgba(255,210,80,0.06), 0 16px 40px rgba(0,0,0,0.35);
+  box-shadow: 0 0 40px rgba(255,71,87,0.08), 0 16px 40px rgba(0,0,0,0.35);
 }
 
 /* ─── Label ── */
@@ -284,8 +223,8 @@ body {
 
 .xp-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--gold-dark), var(--gold));
-  box-shadow: 0 0 10px var(--gold);
+  background: linear-gradient(90deg, #C03040, #FF4757);
+  box-shadow: 0 0 10px rgba(255,71,87,0.4);
   border-radius: 3px;
   animation: xpFill 1.1s cubic-bezier(0.16,1,0.3,1) 0.3s both;
 }
