@@ -104,6 +104,7 @@ export async function POST(request) {
       rawId:        body.credential.rawId,
       type:         body.credential.type,
       response:     body.credential.response,
+      transports:   body.credential.transports || ["internal"],
       name:         pending.deviceName || "My Device",
       registeredAt: new Date().toISOString(),
     };

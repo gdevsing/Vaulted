@@ -1101,9 +1101,10 @@ function BiometricCard() {
         body: JSON.stringify({
           phase: "finish",
           credential: {
-            id:    credential.id,
-            rawId: btoa(String.fromCharCode(...new Uint8Array(credential.rawId))),
-            type:  credential.type,
+            id:         credential.id,
+            rawId:      btoa(String.fromCharCode(...new Uint8Array(credential.rawId))),
+            type:       credential.type,
+            transports: credential.response.getTransports ? credential.response.getTransports() : ["internal"],
             response: {
               attestationObject: btoa(String.fromCharCode(...new Uint8Array(credential.response.attestationObject))),
               clientDataJSON:    btoa(String.fromCharCode(...new Uint8Array(credential.response.clientDataJSON))),
