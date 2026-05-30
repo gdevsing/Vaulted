@@ -52,14 +52,19 @@ export default function LockScreen({ onUnlock }) {
 
       // Phase 2 — browser biometric prompt
       // Pass allowCredentials so iOS goes straight to Face ID
-      const assertion = await navigator.credentials.get({
+      // mediation: "silent" skips the picker on Android when exactly one credential matches
+      const credRequest = {
         publicKey: {
           challenge,
           allowCredentials,
           userVerification: "preferred",
           timeout: 60000,
         },
-      });
+      };
+      if (allowCredentials.length === 1) {
+        credRequest.mediation = "silent";
+      }
+      const assertion = await navigator.credentials.get(credRequest);
 
       if (!assertion) throw new Error("No assertion returned");
 
