@@ -77,8 +77,8 @@ export async function POST(request) {
       excludeCredentials,
       authenticatorSelection: {
         authenticatorAttachment: "platform",
-        userVerification: "preferred",
-        residentKey: "preferred",
+        userVerification: "required",
+        residentKey: "required",  // required = discoverable credential (passkey) = iOS shows Face ID directly
       },
       timeout: 60000,
     });
