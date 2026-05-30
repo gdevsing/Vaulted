@@ -34,25 +34,28 @@ Data never leaves your server. No subscriptions. No third party access to your a
 Open the app, tap through each account due for an update. Point the camera at a balance screen — Gemini AI reads the number automatically. Or type it manually. Confirm, move on. Takes under two minutes for ten accounts.
 
 **Net worth at a glance**
-The dashboard shows total household net worth, broken down by asset class (cash, shares, crypto, super) and by owner (husband, wife, joint). Filter by owner (Combined / Husband / Wife / Joint) or asset type (Cash / Shares / Crypto / Super) — totals and the donut chart update live. Filter state persists across sessions. AUD-equivalent totals are calculated live using cached FX rates for USD accounts.
+The dashboard shows total household net worth, broken down by asset class (cash, shares, crypto, super) and by owner (husband, wife, joint). Filter by owner or asset type — totals and the donut chart update live. AUD-equivalent totals are calculated live using cached FX rates for USD accounts.
 
 **Tracking over time**
-Trends page shows net worth history and per-account sparklines. Every time a balance is saved, a snapshot is recorded — so history builds up automatically over weeks and months.
+Trends page shows net worth history and a forecast projection. Every time a balance is saved, a snapshot is recorded — so history builds up automatically over weeks and months.
 
 **Milestone goals**
 Set a net worth target (e.g. $500k) and watch the progress bar fill. Milestones page shows how far along you are and projects when you'll hit it based on recent growth rate.
 
 **Overdue account alerts**
-Each account has a configured update frequency (weekly, fortnightly, monthly). The app tracks when it was last updated and highlights anything overdue. On the configured day (default Sunday), a push notification fires to your phone via ntfy.sh reminding you to sync.
+Each account has a configured update frequency (weekly, fortnightly, monthly). On the configured day (default Sunday), a push notification fires to your phone via ntfy.sh reminding you to sync.
 
 **Multi-currency**
-USD accounts (e.g. Stake Wall St) store a native USD balance and an AUD-equivalent balance. The FX rate is fetched once daily from frankfurter.app and cached in the DB so the dashboard always shows consistent AUD totals.
+USD accounts store a native USD balance and an AUD-equivalent balance. The FX rate is fetched once daily and cached in the DB.
+
+**Biometric lock**
+The PWA locks on every open and whenever backgrounded. Each household member registers their own device (Face ID / fingerprint). Any registered device can unlock. Managed from Admin → Credentials → Biometric Lock.
 
 **Admin and credentials**
-All API keys (Gemini, ntfy, GitHub) are stored in the DB and editable via the Admin panel. No environment files needed. Cron job status (last run, result) is visible in Admin. Any job can be triggered manually with a Run Now button.
+All API keys (Gemini, ntfy, GitHub) are stored in the DB and editable via the Admin panel. Cron job status is visible in Admin. Any job can be triggered manually.
 
 **Database restore**
-Restore the live database from the configured GitHub backup repo with one button tap in Admin — no SSH required. Shows the last backup date before you confirm. Falls back to manual `.db` file upload if needed. Current DB is kept as a timestamped backup on disk before any swap.
+Restore the live database from the configured GitHub backup repo with one button tap in Admin — no SSH required.
 
 ## Stack
 
@@ -93,8 +96,6 @@ Open [http://localhost:3000](http://localhost:3000)
 
 See [DEPLOY.md](DEPLOY.md) for step-by-step instructions.
 
-Live at: **https://your-domain.com**
-
 ## Project structure
 
 ```
@@ -106,14 +107,18 @@ app/
   milestones/   # Goals and achievements
   admin/        # Account + credential management
   api/
+    webauthn/
+      register/ # Multi-device biometric registration
+      verify/   # Biometric unlock verification
     admin/
-      restore-db/  # DB restore endpoint (GitHub pull or manual upload)
-    ...           # All other backend API routes
+      restore-db/  # DB restore endpoint
+    ...
 components/
-  logo.jsx      # Dial mark + Audiowide wordmark
-  nav.jsx       # Bottom navigation
-  top-bar.jsx   # App header
-  ui/           # Shared primitives
+  lock-screen.jsx  # Biometric lock overlay (PWA only)
+  logo.jsx         # Dial mark + Audiowide wordmark
+  nav.jsx          # Bottom navigation + help drawer
+  top-bar.jsx      # App header
+  ui/              # Shared primitives
 lib/
   db.js         # SQLite client, schema, seed data
   api.js        # Fetch wrappers for all API routes
@@ -124,9 +129,9 @@ lib/
 ## Status
 
 - [x] Scaffold + design tokens + logo
-- [x] Dashboard
-- [x] Update flow
-- [x] Trends & charts
+- [x] Dashboard with coral hero card + decorative circles
+- [x] Update flow (manual + AI screenshot)
+- [x] Trends & charts (coral line, forecast projection)
 - [x] Milestones & goals
 - [x] Admin panel
 - [x] Backend + SQLite
@@ -134,20 +139,24 @@ lib/
 - [x] ntfy.sh notifications
 - [x] Oracle Cloud deployment
 - [x] SSL via Let's Encrypt
-- [x] Logout button
+- [x] CI/CD GitHub Actions (auto-deploy + rollback)
 - [x] Cron job status panel in Admin
-- [x] GitHub private repo DB backup (Monday 2am, cron-triggered)
-- [x] Joint account owner type
-- [x] Desktop font scaling
-- [x] Gemini AI screenshot agent
-- [x] No Change tab on update page
-- [x] Update any account any time (not just when due)
-- [x] DB restore in Admin — GitHub backup pull + manual upload
+- [x] GitHub private repo DB backup
+- [x] DB restore in Admin
+- [x] Multi-currency (AUD + USD with live FX)
+- [x] Asset type + owner filters on dashboard
+- [x] Configurable owner labels (Gurdev / Jasmine / Joint)
+- [x] Forecast graph on Trends
+- [x] Monthly savings rate stat
+- [x] **Midnight Coral theme** — single permanent theme
+- [x] **Biometric lock** — multi-device WebAuthn, PWA-only, locks on every open
+- [x] **PWA optimised** — correct zoom on iPhone, installable on Android + iOS
 
 ## Design
 
-- **Dark theme default** with light theme toggle
+- **Midnight Coral** — single permanent theme
+- `#0F0F0F` base, `#1A1A1A` cards, `#FF4757` coral accent
+- Hero card: `linear-gradient(135deg, #FF6B6B → #FF4757 → #C0392B)` with decorative circles
 - **Audiowide** wordmark, **JetBrains Mono** UI, **Cormorant Garamond** accents
-- Asymmetric cards (`border-radius: 3px 14px 14px 3px`)
-- Gold accent `#FFD24A` (dark) / `#B87800` (light)
-- Asset colours: Cash (blue), Shares (green), Crypto (purple), Super (orange)
+- Asymmetric cards (`border-radius: 3px 20px 20px 3px`)
+- Asset colours: Cash `#60A5FA`, Shares `#4ADE80`, Crypto `#C084FC`, Super `#FB923C`
