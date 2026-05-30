@@ -390,9 +390,6 @@ function OwnerLabelsCard({ settings, onSave }) {
       <div style={{ display:"flex", flexDirection:"column", gap:10, marginBottom:14 }}>
         {OWNER_DEFAULTS.map(({ key, defaultLabel }) => (
           <div key={key} style={{ display:"flex", gap:10, alignItems:"center" }}>
-            <div style={{ fontFamily:"var(--font-mono)", fontSize:10, color:"var(--ink3)", width:16, flexShrink:0, textAlign:"center" }}>
-              {key}
-            </div>
             <div style={{ flex:1 }}>
               <Input
                 value={local[`owner_${key}_label`] || ""}
@@ -404,11 +401,13 @@ function OwnerLabelsCard({ settings, onSave }) {
               onClick={() => setLocal(l => ({ ...l, [`owner_${key}_active`]: l[`owner_${key}_active`] === "1" ? "0" : "1" }))}
               className="btn-press"
               style={{
-                padding:"8px 12px", borderRadius:"2px 7px 7px 2px",
-                border:"1px solid var(--border)", cursor:"pointer", flexShrink:0,
-                fontFamily:"var(--font-mono)", fontSize:9, letterSpacing:"0.08em",
-                background: local[`owner_${key}_active`] === "1" ? "rgba(125,214,138,0.12)" : "transparent",
-                color:      local[`owner_${key}_active`] === "1" ? "var(--positive)" : "var(--ink3)",
+                padding:"8px 14px", borderRadius:"2px 9px 9px 2px",
+                border: `1px solid ${local[`owner_${key}_active`] === "1" ? "rgba(255,71,87,0.5)" : "var(--border)"}`,
+                cursor:"pointer", flexShrink:0,
+                fontFamily:"var(--font-mono)", fontSize:9, letterSpacing:"0.1em",
+                background: local[`owner_${key}_active`] === "1" ? "rgba(255,71,87,0.12)" : "transparent",
+                color:      local[`owner_${key}_active`] === "1" ? "var(--gold)" : "var(--ink3)",
+                transition: "all 0.2s",
               }}
             >
               {local[`owner_${key}_active`] === "1" ? "ON" : "OFF"}
