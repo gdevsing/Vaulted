@@ -66,7 +66,6 @@ const CREDENTIAL_GROUPS = [
     description: "General app configuration",
     fields: [
       { key: "app_public_url",      label: "Public URL",          secret: false, placeholder: "https://your-domain.com", help: "Your app's public domain. Used in notification click links so tapping the alert opens your app directly." },
-      { key: "lock_timeout_mins", label: "Auto-lock timeout (mins)", secret: false, placeholder: "5", help: "Minutes of inactivity before the app locks. Options: 2, 5 or 10. Only applies if biometric lock is enabled." },
       { key: "app_password",      label: "Login Password", secret: true, placeholder: "Choose a strong password" },
       { key: "notify_day",   label: "Notify Day",     secret: false, placeholder: "sunday" },
       { key: "ntfy_topic",   label: "ntfy Topic",     secret: false, placeholder: "vaulted-sync" },

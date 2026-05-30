@@ -1,15 +1,12 @@
 "use client";
 
-import { useState, useContext, createContext, useEffect, useRef, useCallback } from "react";
+import { useState, useContext, createContext, useEffect } from "react";
 import "./globals.css";
 import LockScreen from "@/components/lock-screen";
 
 export const ThemeContext = createContext({ theme: "coral", toggleTheme: () => {} });
 export const useTheme = () => useContext(ThemeContext);
 
-const DEFAULT_TIMEOUT_MS = 5 * 60 * 1000;
-
-// Detect PWA standalone mode
 function isPWA() {
   if (typeof window === "undefined") return false;
   return window.matchMedia("(display-mode: standalone)").matches ||
@@ -19,48 +16,33 @@ function isPWA() {
 export default function RootLayout({ children }) {
   const theme       = "coral";
   const toggleTheme = () => {};
-  const [locked, setLocked]           = useState(false);
+  const [locked,          setLocked]    = useState(false);
   const [biometricEnabled, setBiometric] = useState(false);
-  const timeoutRef = useRef(null);
-  const timeoutMs  = useRef(DEFAULT_TIMEOUT_MS);
 
+  // Load setting + lock immediately on open
   useEffect(() => {
-    // Only enable lock in PWA mode
     if (!isPWA()) return;
-
     fetch("/api/settings", { cache: "no-store" })
       .then(r => r.json())
       .then(({ settings }) => {
         const enabled = settings.webauthn_enabled === "1";
         setBiometric(enabled);
-        const mins = parseInt(settings.lock_timeout_mins || "5", 10);
-        const valid = [2, 5, 10].includes(mins) ? mins : 5;
-        timeoutMs.current = valid * 60 * 1000;
+        if (enabled) setLocked(true);
       })
       .catch(() => {});
   }, []);
 
-  const resetTimer = useCallback(() => {
-    if (!biometricEnabled) return;
-    clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => setLocked(true), timeoutMs.current);
-  }, [biometricEnabled]);
-
+  // Also lock whenever app is backgrounded
   useEffect(() => {
     if (!biometricEnabled) return;
-    const events = ["touchstart", "touchmove", "click", "keydown", "scroll"];
-    events.forEach(e => window.addEventListener(e, resetTimer, { passive: true }));
-    resetTimer();
-    return () => {
-      events.forEach(e => window.removeEventListener(e, resetTimer));
-      clearTimeout(timeoutRef.current);
+    const handleVisibility = () => {
+      if (document.visibilityState === "hidden") setLocked(true);
     };
-  }, [biometricEnabled, resetTimer]);
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, [biometricEnabled]);
 
-  const handleUnlock = () => {
-    setLocked(false);
-    resetTimer();
-  };
+  const handleUnlock = () => setLocked(false);
 
   return (
     <html lang="en" data-theme={theme}>
