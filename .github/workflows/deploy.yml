@@ -4,6 +4,14 @@ on:
   push:
     branches:
       - main
+    # Only deploy when app code changes — skip docs, config, workflow edits
+    paths-ignore:
+      - "*.md"
+      - "docs/**"
+      - ".github/**"
+      - ".gitignore"
+      - "LICENSE"
+      - "screenshots/**"
 
 jobs:
   deploy:
