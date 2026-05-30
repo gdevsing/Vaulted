@@ -38,22 +38,15 @@ export default function LockScreen({ onUnlock }) {
       if (!startRes.ok) throw new Error((await startRes.json()).error || "Failed to start");
       const options = await startRes.json();
 
-      // Decode challenge + credential IDs with padding-safe decoder
+      // Decode challenge
       const challenge = decodeBase64url(options.challenge);
-      const allowCredentials = (options.allowCredentials || []).map(c => ({
-        type: "public-key",
-        id:   decodeBase64url(c.id),
-      }));
 
-      // Phase 2 — browser biometric prompt
-      // authenticatorAttachment: "platform" forces Face ID / Touch ID on iOS
-      // and prevents password managers (Bitwarden etc) from intercepting
-      // allowCredentials already has correct transports from server
+      // Discoverable passkey flow — iOS finds Face ID passkey itself
       const assertion = await navigator.credentials.get({
         publicKey: {
           challenge,
-          allowCredentials,
-          userVerification: "preferred",
+          allowCredentials: [],
+          userVerification: "required",
           timeout: 60000,
         },
       });
