@@ -20,11 +20,18 @@ const OWNER_DEFAULTS    = [
 ];
 
 // ─── Credential field groups ──────────────────────────────────────────────────
+// GitHub SVG icon
+const GitHubIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" style={{ display:"inline-block", verticalAlign:"middle" }} fill="var(--gold)" xmlns="http://www.w3.org/2000/svg">
+    <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+  </svg>
+);
+
 const CREDENTIAL_GROUPS = [
   {
     id: "gemini",
     label: "Gemini AI",
-    icon: "◈",
+    icon: "✦",
     description: "Google Gemini 2.5 Flash — reads balances from screenshots",
     link: "https://aistudio.google.com/apikey",
     linkLabel: "Get API key →",
@@ -49,7 +56,7 @@ const CREDENTIAL_GROUPS = [
   {
     id: "gdrive",
     label: "GitHub Backup",
-    icon: "↓",
+    icon: "github",
     description: "Daily DB backup pushed to a private GitHub repository",
     link: "https://github.com/settings/tokens/new?scopes=repo&description=Vaulted+Backup",
     linkLabel: "Create token →",
@@ -62,16 +69,22 @@ const CREDENTIAL_GROUPS = [
   {
     id: "app",
     label: "App Settings",
-    icon: "⊞",
+    icon: "⚙",
     description: "General app configuration",
     fields: [
-      { key: "app_public_url",      label: "Public URL",          secret: false, placeholder: "https://your-domain.com", help: "Your app's public domain. Used in notification click links so tapping the alert opens your app directly." },
-      { key: "app_password",      label: "Login Password", secret: true, placeholder: "Choose a strong password" },
-      { key: "notify_day",   label: "Notify Day",     secret: false, placeholder: "sunday" },
-      { key: "ntfy_topic",   label: "ntfy Topic",     secret: false, placeholder: "vaulted-sync" },
+      { key: "app_public_url", label: "Public URL",      secret: false, placeholder: "https://your-domain.com", help: "Your app's public domain. Used in notification click links so tapping the alert opens your app directly." },
+      { key: "app_password",   label: "Login Password",  secret: true,  placeholder: "Choose a strong password" },
+      { key: "notify_day",     label: "Notify Day",      secret: false, placeholder: "sunday" },
+      { key: "ntfy_topic",     label: "ntfy Topic",      secret: false, placeholder: "vaulted-sync" },
     ],
   },
 ];
+
+// Render icon — handles string or special "github" key
+function CardIcon({ icon, size = 16 }) {
+  if (icon === "github") return <GitHubIcon />;
+  return <span style={{ fontFamily: "var(--font-mono)", fontSize: size, color: "var(--gold)", lineHeight: 1 }}>{icon}</span>;
+}
 
 // ─── Reusable input ───────────────────────────────────────────────────────────
 function Field({ label, children }) {
@@ -257,24 +270,20 @@ function CredentialGroup({ group, settings, onSave }) {
       {/* Header */}
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:14 }}>
         <div>
-          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:3 }}>
-            <span style={{ fontFamily:"var(--font-mono)", fontSize:16, color:"var(--gold)" }}>{group.icon}</span>
+          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
+            <CardIcon icon={group.icon} size={16} />
             <span style={{ fontFamily:"var(--font-display)", fontSize:14, color:"var(--ink)" }}>{group.label}</span>
-            {/* Status dot */}
             {group.fields.some(f => f.secret && settings[f.key]) && (
-              <div style={{
-                width:6, height:6, borderRadius:"50%",
-                background:"var(--positive)", boxShadow:"0 0 6px var(--positive)",
-              }} />
+              <div style={{ width:6, height:6, borderRadius:"50%", background:"var(--positive)", boxShadow:"0 0 6px var(--positive)", flexShrink:0 }} />
             )}
           </div>
-          <div style={{ fontFamily:"var(--font-mono)", fontSize:9, color:"var(--ink2)", letterSpacing:"0.06em" }}>
+          <div style={{ fontFamily:"var(--font-mono)", fontSize:9, color:"var(--ink2)", letterSpacing:"0.06em", lineHeight:1.6 }}>
             {group.description}
           </div>
         </div>
         {group.link && (
           <a href={group.link} target="_blank" rel="noopener noreferrer"
-            style={{ fontFamily:"var(--font-mono)", fontSize:8, color:"var(--gold)", letterSpacing:"0.1em", textDecoration:"none", flexShrink:0 }}>
+            style={{ fontFamily:"var(--font-mono)", fontSize:8, color:"var(--gold)", letterSpacing:"0.1em", textDecoration:"none", flexShrink:0, marginLeft:12 }}>
             {group.linkLabel}
           </a>
         )}
@@ -372,7 +381,7 @@ function OwnerLabelsCard({ settings, onSave }) {
   return (
     <div className="card fade-up" style={{ padding:"18px 20px" }}>
       <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
-        <span style={{ fontFamily:"var(--font-mono)", fontSize:16, color:"var(--gold)" }}>◉</span>
+        <span style={{ fontFamily:"var(--font-mono)", fontSize:16, color:"var(--gold)" }}>⊙</span>
         <span style={{ fontFamily:"var(--font-display)", fontSize:14, color:"var(--ink)" }}>Owner Labels</span>
       </div>
       <div style={{ fontFamily:"var(--font-mono)", fontSize:9, color:"var(--ink2)", letterSpacing:"0.06em", marginBottom:14 }}>
@@ -593,8 +602,9 @@ function CronStatusCard() {
 
   return (
     <div className="card fade-up" style={{ padding: "18px 20px" }}>
-      <div style={{ fontFamily: "var(--font-display)", fontSize: 14, color: "var(--ink)", marginBottom: 14 }}>
-        Cron Jobs
+      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:14 }}>
+        <span style={{ fontFamily:"var(--font-mono)", fontSize:16, color:"var(--gold)" }}>⟳</span>
+        <span style={{ fontFamily:"var(--font-display)", fontSize:14, color:"var(--ink)" }}>Cron Jobs</span>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         {jobs.map(({ key, label, schedule }) => {
@@ -606,8 +616,8 @@ function CronStatusCard() {
           return (
             <div key={key} style={{ borderTop: "1px solid var(--border)", paddingTop: 10 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                <div style={{ width: 6, height: 6, borderRadius: "50%", background: dotColor, boxShadow: `0 0 6px ${dotColor}` }} />
                 <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--ink)" }}>{label}</span>
+                <div style={{ width: 6, height: 6, borderRadius: "50%", background: dotColor, boxShadow: `0 0 6px ${dotColor}`, flexShrink:0 }} />
                 <span style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--ink2)" }}>{schedule}</span>
                 <button
                   onClick={() => runJob(key)}
@@ -680,14 +690,15 @@ function NotifyStatusCard() {
   const accentColor = status.configured ? "var(--positive)" : "var(--negative)";
 
   return (
-    <div className="card fade-up" style={{ padding:"18px 20px", borderLeft:"3px solid var(--gold)" }}>
+    <div className="card fade-up" style={{ padding:"18px 20px" }}>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
         <div>
-          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:3 }}>
-            <span style={{ fontFamily:"var(--font-mono)", fontSize:11, color:"var(--ink)" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
+            <span style={{ fontFamily:"var(--font-mono)", fontSize:16, color:"var(--gold)" }}>◈</span>
+            <span style={{ fontFamily:"var(--font-display)", fontSize:14, color:"var(--ink)" }}>
               {status.configured ? "ntfy.sh connected" : "ntfy.sh not configured"}
             </span>
-            <div style={{ width:6, height:6, borderRadius:"50%", background:accentColor, boxShadow:`0 0 6px ${accentColor}` }} />
+            <div style={{ width:6, height:6, borderRadius:"50%", background:accentColor, boxShadow:`0 0 6px ${accentColor}`, flexShrink:0 }} />
           </div>
           {status.configured && (
             <div style={{ fontFamily:"var(--font-mono)", fontSize:9, color:"var(--ink2)", letterSpacing:"0.06em" }}>
@@ -880,12 +891,8 @@ function RestoreDbCard() {
     }
   };
 
-  const borderColor = status === "error" ? "var(--negative)"
-    : status === "done" ? "var(--positive)"
-    : "var(--border-strong)";
-
   return (
-    <div className="card fade-up" style={{ padding: "18px 20px", borderLeft: `3px solid ${borderColor}` }}>
+    <div className="card fade-up" style={{ padding: "18px 20px" }}>
 
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
@@ -1129,10 +1136,10 @@ function BiometricCard() {
   };
 
   return (
-    <div className="card fade-up" style={{ padding: "18px 20px", borderLeft: "3px solid var(--gold)" }}>
+    <div className="card fade-up" style={{ padding: "18px 20px" }}>
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-        <span style={{ color: "var(--gold)", fontSize: 14 }}>◈</span>
+        <span style={{ fontFamily:"var(--font-mono)", color: "var(--gold)", fontSize: 16, lineHeight:1 }}>⌖</span>
         <span style={{ fontFamily: "var(--font-display)", fontSize: 14, color: "var(--ink)" }}>Biometric Lock</span>
         {isEnabled && <span style={{ fontFamily: "var(--font-mono)", fontSize: 8, letterSpacing: "0.1em", padding: "1px 6px", borderRadius: "2px 6px 6px 2px", background: "rgba(255,71,87,0.12)", color: "var(--gold)", border: "1px solid rgba(255,71,87,0.2)" }}>{devices.length} DEVICE{devices.length !== 1 ? "S" : ""}</span>}
       </div>
@@ -1412,8 +1419,8 @@ export default function AdminPage() {
             {/* ─── Credentials tab ─── */}
             {tab === "credentials" && (
               <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
-                <div style={{ fontFamily:"var(--font-mono)", fontSize:9, color:"var(--ink2)", letterSpacing:"0.08em", padding:"10px 14px", background:"rgba(255,210,74,0.06)", border:"1px solid rgba(255,210,74,0.2)", borderRadius:"2px 8px 8px 2px" }}>
-                  ◈ Credentials are stored in the local SQLite database on your VPS. Never committed to git.
+                <div style={{ fontFamily:"var(--font-mono)", fontSize:9, color:"var(--ink2)", letterSpacing:"0.08em", padding:"10px 14px", background:"rgba(255,255,255,0.03)", border:"1px solid var(--border)", borderRadius:"2px 8px 8px 2px", lineHeight:1.6 }}>
+                  Credentials are stored in the local SQLite database on your VPS. Never committed to git.
                 </div>
                 <OwnerLabelsCard settings={settings} onSave={handleSaveSettings} />
                 <CronStatusCard />
