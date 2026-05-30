@@ -402,11 +402,11 @@ function OwnerLabelsCard({ settings, onSave }) {
               className="btn-press"
               style={{
                 padding:"8px 14px", borderRadius:"2px 9px 9px 2px",
-                border: `1px solid ${local[`owner_${key}_active`] === "1" ? "rgba(255,71,87,0.5)" : "var(--border)"}`,
+                border: `1px solid ${local[`owner_${key}_active`] === "1" ? "rgba(125,214,138,0.5)" : "var(--border)"}`,
                 cursor:"pointer", flexShrink:0,
                 fontFamily:"var(--font-mono)", fontSize:9, letterSpacing:"0.1em",
-                background: local[`owner_${key}_active`] === "1" ? "rgba(255,71,87,0.12)" : "transparent",
-                color:      local[`owner_${key}_active`] === "1" ? "var(--gold)" : "var(--ink3)",
+                background: local[`owner_${key}_active`] === "1" ? "rgba(125,214,138,0.12)" : "transparent",
+                color:      local[`owner_${key}_active`] === "1" ? "var(--positive)" : "var(--ink3)",
                 transition: "all 0.2s",
               }}
             >
