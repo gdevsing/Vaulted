@@ -918,7 +918,7 @@ function RestoreDbCard() {
               fontFamily: "var(--font-mono)", fontSize: 9, letterSpacing: "0.08em",
               padding: "5px 12px", borderRadius: "2px 6px 6px 2px", border: "none",
               cursor: "pointer",
-              background: mode === key ? "var(--gold)" : "transparent",
+              background: mode === key ? "rgba(255,71,87,0.12)" : "transparent",
               color: mode === key ? "#0C0A08" : "var(--ink2)",
               transition: "all 0.2s",
             }}>
