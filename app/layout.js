@@ -16,10 +16,10 @@ function isPWA() {
 export default function RootLayout({ children }) {
   const theme       = "coral";
   const toggleTheme = () => {};
-  const [locked,          setLocked]    = useState(false);
+  const [locked,           setLocked]    = useState(false);
   const [biometricEnabled, setBiometric] = useState(false);
 
-  // Load setting + lock immediately on open
+  // Load setting + lock immediately on every open
   useEffect(() => {
     if (!isPWA()) return;
     fetch("/api/settings", { cache: "no-store" })
