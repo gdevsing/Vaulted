@@ -35,16 +35,12 @@ export async function POST(request) {
       expires: Date.now() + 120_000,
     }));
 
-    // Allow any registered device to unlock
-    // transports: ["internal"] tells iOS to use Face ID, not Bitwarden
+    // Discoverable credential flow — empty allowCredentials
+    // iOS finds the passkey in Keychain and shows Face ID directly
     return NextResponse.json({
       challenge,
-      allowCredentials: devices.map(d => ({
-        type: "public-key",
-        id: d.id,
-        transports: d.transports || ["internal"],
-      })),
-      userVerification: "preferred",
+      allowCredentials: [],
+      userVerification: "required",
       timeout: 60000,
     });
   }
