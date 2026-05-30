@@ -680,14 +680,14 @@ function NotifyStatusCard() {
   const accentColor = status.configured ? "var(--positive)" : "var(--negative)";
 
   return (
-    <div className="card fade-up" style={{ padding:"18px 20px", borderLeft:`3px solid ${accentColor}` }}>
+    <div className="card fade-up" style={{ padding:"18px 20px", borderLeft:"3px solid var(--gold)" }}>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
         <div>
           <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:3 }}>
-            <div style={{ width:6, height:6, borderRadius:"50%", background:accentColor, boxShadow:`0 0 6px ${accentColor}` }} />
             <span style={{ fontFamily:"var(--font-mono)", fontSize:11, color:"var(--ink)" }}>
               {status.configured ? "ntfy.sh connected" : "ntfy.sh not configured"}
             </span>
+            <div style={{ width:6, height:6, borderRadius:"50%", background:accentColor, boxShadow:`0 0 6px ${accentColor}` }} />
           </div>
           {status.configured && (
             <div style={{ fontFamily:"var(--font-mono)", fontSize:9, color:"var(--ink2)", letterSpacing:"0.06em" }}>
@@ -1129,7 +1129,7 @@ function BiometricCard() {
   };
 
   return (
-    <div className="card fade-up" style={{ padding: "18px 20px", borderLeft: `3px solid ${isEnabled ? "var(--positive)" : "var(--border-strong)"}` }}>
+    <div className="card fade-up" style={{ padding: "18px 20px", borderLeft: "3px solid var(--gold)" }}>
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
         <span style={{ fontSize: 15 }}>{isEnabled ? "🔒" : "🔓"}</span>
