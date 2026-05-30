@@ -35,12 +35,16 @@ export async function POST(request) {
       expires: Date.now() + 120_000,
     }));
 
-    // Discoverable passkey flow — empty allowCredentials
-    // iOS finds the passkey in Keychain and shows Face ID directly
+    // Return actual credential IDs so iOS authenticates existing passkey
+    // NOT empty array — that triggers "create new passkey" picker on iOS
     return NextResponse.json({
       challenge,
-      allowCredentials: [],
-      userVerification: "required",
+      allowCredentials: devices.map(d => ({
+        type: "public-key",
+        id:   d.id,
+        transports: d.transports || ["internal"],
+      })),
+      userVerification: "preferred",
       timeout: 60000,
     });
   }
