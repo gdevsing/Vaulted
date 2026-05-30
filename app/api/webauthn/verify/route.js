@@ -36,9 +36,14 @@ export async function POST(request) {
     }));
 
     // Allow any registered device to unlock
+    // transports: ["internal"] tells iOS to use Face ID, not Bitwarden
     return NextResponse.json({
       challenge,
-      allowCredentials: devices.map(d => ({ type: "public-key", id: d.id })),
+      allowCredentials: devices.map(d => ({
+        type: "public-key",
+        id: d.id,
+        transports: ["internal"],
+      })),
       userVerification: "preferred",
       timeout: 60000,
     });

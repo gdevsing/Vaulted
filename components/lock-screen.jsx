@@ -46,11 +46,15 @@ export default function LockScreen({ onUnlock }) {
       }));
 
       // Phase 2 — browser biometric prompt
-      // "preferred" is more compatible with iOS than "required"
+      // authenticatorAttachment: "platform" forces Face ID / Touch ID on iOS
+      // and prevents password managers (Bitwarden etc) from intercepting
       const assertion = await navigator.credentials.get({
         publicKey: {
           challenge,
-          allowCredentials,
+          allowCredentials: allowCredentials.map(c => ({
+            ...c,
+            transports: ["internal"],  // "internal" = platform authenticator only
+          })),
           userVerification: "preferred",
           timeout: 60000,
         },
