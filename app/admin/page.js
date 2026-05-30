@@ -1129,12 +1129,12 @@ function BiometricCard() {
   };
 
   return (
-    <div className="card fade-up" style={{ padding: "18px 20px", borderLeft: `3px solid ${isEnabled ? "var(--positive)" : "var(--border-strong)"}` }}>
-      {/* Header */}
+    <div className="card fade-up" style={{ padding: "18px 20px", borderLeft: "3px solid var(--gold)" }}>
+      {/* Header — matches other credential cards */}
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-        <span style={{ fontSize: 15 }}>{isEnabled ? "🔒" : "🔓"}</span>
+        <span style={{ color: "var(--gold)", fontSize: 14 }}>◈</span>
         <span style={{ fontFamily: "var(--font-display)", fontSize: 14, color: "var(--ink)" }}>Biometric Lock</span>
-        {isEnabled && <span style={{ fontFamily: "var(--font-mono)", fontSize: 8, letterSpacing: "0.1em", padding: "1px 6px", borderRadius: "2px 6px 6px 2px", background: "rgba(125,214,138,0.15)", color: "var(--positive)", border: "1px solid rgba(125,214,138,0.25)" }}>{devices.length} DEVICE{devices.length !== 1 ? "S" : ""}</span>}
+        {isEnabled && <span style={{ fontFamily: "var(--font-mono)", fontSize: 8, letterSpacing: "0.1em", padding: "1px 6px", borderRadius: "2px 6px 6px 2px", background: "rgba(255,71,87,0.12)", color: "var(--gold)", border: "1px solid rgba(255,71,87,0.2)" }}>{devices.length} DEVICE{devices.length !== 1 ? "S" : ""}</span>}
       </div>
       <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--ink2)", letterSpacing: "0.06em", lineHeight: 1.6, marginBottom: 14 }}>
         PWA only. Each phone registers separately. Any registered device can unlock.
