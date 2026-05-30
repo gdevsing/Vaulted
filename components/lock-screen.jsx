@@ -48,13 +48,11 @@ export default function LockScreen({ onUnlock }) {
       // Phase 2 — browser biometric prompt
       // authenticatorAttachment: "platform" forces Face ID / Touch ID on iOS
       // and prevents password managers (Bitwarden etc) from intercepting
+      // allowCredentials already has correct transports from server
       const assertion = await navigator.credentials.get({
         publicKey: {
           challenge,
-          allowCredentials: allowCredentials.map(c => ({
-            ...c,
-            transports: ["internal"],  // "internal" = platform authenticator only
-          })),
+          allowCredentials,
           userVerification: "preferred",
           timeout: 60000,
         },
