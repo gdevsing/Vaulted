@@ -26,8 +26,8 @@ function AssetFilter({ active, onChange }) {
           fontFamily: "var(--font-mono)", fontSize: 9, letterSpacing: "0.1em",
           padding: "5px 10px", borderRadius: "2px 7px 7px 2px", border: "none",
           cursor: "pointer",
-          background: active === o.key ? "var(--gold)" : "transparent",
-          color: active === o.key ? "#0C0A08" : "var(--ink2)",
+          background: active === o.key ? "rgba(255,71,87,0.12)" : "transparent",
+          color: active === o.key ? "var(--gold)" : "var(--ink2)",
           transition: "all 0.2s",
         }}>{o.label}</button>
       ))}
@@ -47,8 +47,8 @@ function OwnerFilter({ active, onChange, owners }) {
           fontFamily: "var(--font-mono)", fontSize: 9, letterSpacing: "0.1em",
           padding: "5px 10px", borderRadius: "2px 7px 7px 2px", border: "none",
           cursor: "pointer",
-          background: active === o.key ? "var(--gold)" : "transparent",
-          color: active === o.key ? "#0C0A08" : "var(--ink2)",
+          background: active === o.key ? "rgba(255,71,87,0.12)" : "transparent",
+          color: active === o.key ? "var(--gold)" : "var(--ink2)",
           transition: "all 0.2s",
         }}>{o.label}</button>
       ))}
