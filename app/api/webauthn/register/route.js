@@ -77,7 +77,7 @@ export async function POST(request) {
       excludeCredentials,
       authenticatorSelection: {
         authenticatorAttachment: "platform",
-        userVerification: "required",
+        userVerification: "preferred",
         residentKey: "preferred",
       },
       timeout: 60000,
