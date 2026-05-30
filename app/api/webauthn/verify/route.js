@@ -39,7 +39,7 @@ export async function POST(request) {
     return NextResponse.json({
       challenge,
       allowCredentials: devices.map(d => ({ type: "public-key", id: d.id })),
-      userVerification: "required",
+      userVerification: "preferred",
       timeout: 60000,
     });
   }
