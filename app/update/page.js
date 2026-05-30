@@ -646,8 +646,8 @@ export default function UpdatePage() {
                       fontFamily:"var(--font-mono)", fontSize:9, letterSpacing:"0.1em",
                       padding:"5px 12px", borderRadius:"2px 7px 7px 2px", border:"none",
                       cursor:"pointer",
-                      background: showAll === o.key ? "var(--gold)" : "transparent",
-                      color: showAll === o.key ? "#0C0A08" : "var(--ink2)",
+                      background: showAll === o.key ? "rgba(255,71,87,0.12)" : "transparent",
+                      color: showAll === o.key ? "var(--gold)" : "var(--ink2)",
                       transition:"all 0.2s",
                     }}
                   >
