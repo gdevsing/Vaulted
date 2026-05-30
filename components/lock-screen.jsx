@@ -3,62 +3,80 @@
 import { useState, useEffect } from "react";
 import Logo from "@/components/logo";
 
-export default function LockScreen({ onUnlock }) {
-  const [status, setStatus]   = useState("idle"); // idle | prompting | error | unsupported
-  const [attempts, setAttempts] = useState(0);
+// Safely decode base64url to Uint8Array — handles missing padding (iOS is strict)
+function decodeBase64url(str) {
+  const base64 = str.replace(/-/g, "+").replace(/_/g, "/");
+  const padded  = base64.padEnd(base64.length + (4 - base64.length % 4) % 4, "=");
+  const binary  = atob(padded);
+  return Uint8Array.from(binary, c => c.charCodeAt(0));
+}
 
-  // Auto-prompt on mount
+export default function LockScreen({ onUnlock }) {
+  const [status,   setStatus]   = useState("idle"); // idle | prompting | error | unsupported
+  const [attempts, setAttempts] = useState(0);
+  const [message,  setMessage]  = useState("");
+
+  // Check support on mount — don't auto-prompt (iOS blocks non-gesture calls)
   useEffect(() => {
-    // Small delay so the lock screen renders first
-    const t = setTimeout(() => handleUnlock(), 400);
-    return () => clearTimeout(t);
+    if (typeof window === "undefined") return;
+    if (!window.PublicKeyCredential) {
+      setStatus("unsupported");
+      setMessage("Biometric not available on this browser.");
+    }
   }, []);
 
   const handleUnlock = async () => {
-    if (attempts >= 3) return;
+    if (attempts >= 5) return;
+    if (status === "prompting") return;
     setStatus("prompting");
+    setMessage("");
 
     try {
-      // Phase 1 — get challenge
+      // Phase 1 — get challenge + allowed credentials
       const startRes = await fetch("/api/webauthn/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ phase: "start" }),
       });
-      if (!startRes.ok) throw new Error("Failed to start verification");
+
+      if (!startRes.ok) {
+        const err = await startRes.json();
+        throw new Error(err.error || "Failed to start");
+      }
+
       const options = await startRes.json();
 
-      // Convert challenge to ArrayBuffer
-      const challengeBuffer = Uint8Array.from(
-        atob(options.challenge.replace(/-/g, "+").replace(/_/g, "/")),
-        c => c.charCodeAt(0)
-      );
+      // Decode challenge
+      const challenge = decodeBase64url(options.challenge);
 
-      const allowCredentials = options.allowCredentials.map(c => ({
-        ...c,
-        id: Uint8Array.from(atob(c.id.replace(/-/g, "+").replace(/_/g, "/")), ch => ch.charCodeAt(0)),
+      // Decode each allowed credential id
+      const allowCredentials = (options.allowCredentials || []).map(c => ({
+        type: "public-key",
+        id:   decodeBase64url(c.id),
       }));
 
       // Phase 2 — browser biometric prompt
+      // userVerification "preferred" is more compatible with iOS than "required"
       const assertion = await navigator.credentials.get({
         publicKey: {
-          challenge: challengeBuffer,
+          challenge,
           allowCredentials,
-          userVerification: "required",
+          userVerification: "preferred",
           timeout: 60000,
         },
       });
 
-      // Send assertion to server
+      if (!assertion) throw new Error("No assertion returned");
+
+      // Encode response back to base64
+      const id    = assertion.id;
+      const rawId = btoa(String.fromCharCode(...new Uint8Array(assertion.rawId)));
+
+      // Phase 3 — verify
       const finishRes = await fetch("/api/webauthn/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          phase:  "finish",
-          id:     assertion.id,
-          rawId:  btoa(String.fromCharCode(...new Uint8Array(assertion.rawId))),
-          type:   assertion.type,
-        }),
+        body: JSON.stringify({ phase: "finish", id, rawId, type: assertion.type }),
       });
 
       const result = await finishRes.json();
@@ -70,19 +88,27 @@ export default function LockScreen({ onUnlock }) {
       }
 
     } catch (err) {
-      if (err.name === "NotSupportedError" || err.name === "SecurityError") {
+      const name = err.name || "";
+      if (name === "NotSupportedError" || name === "SecurityError") {
         setStatus("unsupported");
-      } else if (err.name === "NotAllowedError") {
-        // User cancelled or failed
+        setMessage("Biometric not supported on this device.");
+      } else if (name === "NotAllowedError") {
+        // User cancelled — just reset, don't count as failure
+        setStatus("idle");
+        setMessage("Cancelled. Tap Unlock to try again.");
+      } else if (name === "InvalidStateError") {
+        setStatus("idle");
+        setMessage("Credential not found. Try re-registering this device.");
+      } else {
         const newAttempts = attempts + 1;
         setAttempts(newAttempts);
-        setStatus(newAttempts >= 3 ? "error" : "idle");
-      } else {
-        setAttempts(a => a + 1);
         setStatus("idle");
+        setMessage(err.message || "Something went wrong.");
       }
     }
   };
+
+  const tooManyAttempts = attempts >= 5;
 
   return (
     <div style={{
@@ -90,63 +116,64 @@ export default function LockScreen({ onUnlock }) {
       background: "#0F0F0F",
       display: "flex", flexDirection: "column",
       alignItems: "center", justifyContent: "center",
-      gap: 32, padding: 32,
+      gap: 28, padding: 40,
     }}>
-      {/* Logo */}
       <Logo size="lg" animate={false} />
 
-      {/* Status */}
       <div style={{ textAlign: "center" }}>
         <div style={{
           fontFamily: "var(--font-display)", fontSize: 18,
-          color: "var(--ink)", marginBottom: 8,
+          color: "var(--ink)", marginBottom: 10, letterSpacing: "0.05em",
         }}>
           Vaulted is locked
         </div>
         <div style={{
           fontFamily: "var(--font-mono)", fontSize: 10,
-          color: "var(--ink2)", letterSpacing: "0.08em",
+          color: message ? (status === "unsupported" ? "var(--negative)" : "var(--ink2)") : "var(--ink2)",
+          letterSpacing: "0.08em", lineHeight: 1.6,
         }}>
-          {status === "prompting" ? "Waiting for biometric..." :
-           status === "unsupported" ? "Biometric not available on this device" :
-           attempts >= 3 ? "Too many attempts" :
-           "Use Face ID or fingerprint to unlock"}
+          {status === "prompting"
+            ? "Waiting for biometric..."
+            : status === "unsupported"
+            ? message
+            : tooManyAttempts
+            ? "Too many failed attempts."
+            : message || "Tap Unlock to use Face ID or fingerprint"}
         </div>
       </div>
 
-      {/* Unlock button */}
-      {status !== "unsupported" && attempts < 3 && (
+      {/* Unlock button — always visible unless unsupported or too many attempts */}
+      {status !== "unsupported" && !tooManyAttempts && (
         <button
           onClick={handleUnlock}
           disabled={status === "prompting"}
           className="btn-press"
           style={{
-            background: status === "prompting" ? "rgba(255,71,87,0.1)" : "transparent",
+            background: status === "prompting" ? "rgba(255,71,87,0.12)" : "transparent",
             border: "1px solid rgba(255,71,87,0.6)",
-            borderRadius: "3px 14px 14px 3px",
-            padding: "12px 32px",
-            fontFamily: "var(--font-mono)", fontSize: 11,
-            letterSpacing: "0.12em",
+            borderRadius: "3px 16px 16px 3px",
+            padding: "14px 40px",
+            fontFamily: "var(--font-mono)", fontSize: 12,
+            letterSpacing: "0.14em",
             color: "#FF4757",
-            cursor: status === "prompting" ? "not-allowed" : "pointer",
-            boxShadow: "0 0 16px rgba(255,71,87,0.2)",
+            cursor: status === "prompting" ? "default" : "pointer",
+            boxShadow: status === "prompting" ? "none" : "0 0 20px rgba(255,71,87,0.2)",
             transition: "all 0.2s",
+            minWidth: 160,
           }}
         >
           {status === "prompting" ? "UNLOCKING..." : "UNLOCK"}
         </button>
       )}
 
-      {/* Too many attempts */}
-      {attempts >= 3 && (
+      {tooManyAttempts && (
         <div style={{
           fontFamily: "var(--font-mono)", fontSize: 9,
           color: "var(--ink2)", letterSpacing: "0.08em",
-          textAlign: "center", lineHeight: 1.7,
+          textAlign: "center", lineHeight: 1.8,
         }}>
-          Too many failed attempts.{"\n"}
           <a href="/login" style={{ color: "var(--gold)", textDecoration: "none" }}>
-            Log out and log back in
+            LOG OUT AND LOG BACK IN
           </a>
         </div>
       )}
