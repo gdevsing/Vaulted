@@ -224,8 +224,8 @@ export default function TrendsPage() {
                   fontFamily: "var(--font-mono)", fontSize: 9, letterSpacing: "0.1em",
                   padding: "5px 12px", borderRadius: "2px 7px 7px 2px", border: "none",
                   cursor: "pointer",
-                  background: view === v.key ? "var(--gold)" : "transparent",
-                  color: view === v.key ? "#0C0A08" : "var(--ink2)",
+                  background: view === v.key ? "rgba(255,71,87,0.12)" : "transparent",
+                  color: view === v.key ? "var(--gold)" : "var(--ink2)",
                   transition: "all 0.2s",
                 }}>
                   {v.label}
