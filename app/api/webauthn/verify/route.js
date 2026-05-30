@@ -42,7 +42,7 @@ export async function POST(request) {
       allowCredentials: devices.map(d => ({
         type: "public-key",
         id: d.id,
-        transports: ["internal"],
+        transports: d.transports || ["internal"],
       })),
       userVerification: "preferred",
       timeout: 60000,
