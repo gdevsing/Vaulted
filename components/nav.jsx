@@ -4,8 +4,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import Logo from "@/components/logo";
-import { ThemeToggle } from "@/components/ui/primitives";
-import { useTheme } from "@/app/layout";
 
 const NAV_ITEMS = [
   { href: "/dashboard",  icon: "◈", label: "HOME"   },
@@ -19,7 +17,6 @@ const NAV_ITEMS = [
 function DesktopSidebar({ onHelpOpen }) {
   const pathname   = usePathname();
   const router     = useRouter();
-  const { theme, toggleTheme } = useTheme();
   const [collapsed, setCollapsed] = useState(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("sidebar-collapsed") === "true";
@@ -182,27 +179,6 @@ function DesktopSidebar({ onHelpOpen }) {
           {collapsed && <div className="sidebar-tooltip">HELP</div>}
         </button>
 
-        {/* Theme toggle */}
-        <button onClick={toggleTheme} className="btn-press" style={{
-          display: "flex", alignItems: "center",
-          gap: collapsed ? 0 : 12,
-          justifyContent: collapsed ? "center" : "flex-start",
-          padding: collapsed ? "10px 0" : "10px 12px",
-          background: "transparent", border: "none",
-          borderRadius: "2px 10px 10px 2px",
-          cursor: "pointer", width: "100%", position: "relative",
-        }}>
-          <span style={{ fontSize: 14, color: "var(--ink2)", width: 20, textAlign: "center" }}>
-            {"☀"}
-          </span>
-          {!collapsed && (
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.1em", color: "var(--ink2)" }}>
-              {"LIGHT"}
-            </span>
-          )}
-          {collapsed && <div className="sidebar-tooltip">{"LIGHT MODE"}</div>}
-        </button>
-
         {/* Logout */}
         <button onClick={handleLogout} className="btn-press" style={{
           display: "flex", alignItems: "center",
@@ -227,7 +203,7 @@ function DesktopSidebar({ onHelpOpen }) {
 }
 
 // ─── Mobile Bottom Nav ────────────────────────────────────────────────────────
-function MobileNav({ onHelpOpen }) {
+function MobileNav() {
   const pathname = usePathname();
   return (
     <nav className="bottom-nav">
@@ -314,7 +290,6 @@ const HELP_SECTIONS = [
 ];
 
 export function HelpDrawer({ open, onClose }) {
-  const { theme } = useTheme();
 
   useEffect(() => {
     const handler = (e) => { if (e.key === "Escape") onClose(); };
