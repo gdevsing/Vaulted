@@ -87,7 +87,7 @@ Never stored in .env files or committed to git.
 | GET                | /api/snapshots        | Balance history for an account      |
 | POST               | /api/snapshots        | Save a new balance snapshot         |
 | GET                | /api/networth         | Current totals + asset breakdown    |
-| GET                | /api/networth?history | Weekly net worth history            |
+| GET                | /api/networth?history | Weekly history: totals, assets, per-account (carried forward) |
 | GET                | /api/fx               | Live FX rate (USD→AUD), 24h cached  |
 | GET/PATCH          | /api/settings         | App config read/write               |
 | POST               | /api/login            | Auth — compare password, set cookie |
@@ -106,7 +106,7 @@ Never stored in .env files or committed to git.
 | /login       | app/login/page.js         | Rotating quotes, MIT footer        |
 | /dashboard   | app/dashboard/page.js     | Net worth, donut, account cards    |
 | /update      | app/update/page.js        | Guided sync, Gemini AI, no-change  |
-| /trends      | app/trends/page.js        | Charts, time filters, breakdown    |
+| /trends      | app/trends/page.js        | Net worth, breakdown, per-account charts |
 | /milestones  | app/milestones/page.js    | Goals, projections, achievements   |
 | /admin       | app/admin/page.js         | Accounts + credentials + cron jobs |
 
@@ -192,6 +192,8 @@ All features built and deployed at https://your-domain.com
 - ✅ FX cron calls frankfurter.app directly (no longer depends on Next.js being up)
 - ✅ Balance save error handling (shows error instead of fake SAVED ✓)
 - ✅ Cron job manual trigger + status panel in Admin
+- ✅ Trends → Accounts tab: every account on one chart (toggle lines on/off) or one account at a time
+- ✅ History carry-forward — accounts not synced in a week keep their last balance (no false dips)
 
 ### Pending
 Nothing — all features and security hardening complete.
@@ -208,6 +210,19 @@ Nothing — all features and security hardening complete.
 - middleware.js intercepts all `/api/*` calls before they reach route handlers
 - `lib/mock-data.js` `getMockResponse()` returns fake shapes per endpoint
 - Real DB is structurally unreachable — no conditional check, no API hop possible
+
+---
+
+## Trends History
+
+`GET /api/networth?history` (`buildHistory()` in `app/api/networth/route.js`) returns:
+- `history` — one row per week (Mon–Sun, Sydney time), every week from the first snapshot to the latest, with no gaps.
+  Each row: `week` (`YYYY-WW`, same as SQLite `%Y-%W`), `week_end` (Sunday, ISO date), `total`, `cash`, `shares`, `crypto`, `super`,
+  `synced` (accounts updated that week) and `a_<accountId>` per account (`null` before its first snapshot).
+- `accounts` — `{ id, name, institution, owner, asset, currency, key }` for the active accounts, where `key` is the `a_<id>` column.
+
+Each account's last known balance is carried forward into weeks it wasn't synced, so a week where only some
+accounts were updated no longer shows as a drop in net worth. Supports `&owner=H|W|J`.
 
 ---
 
