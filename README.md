@@ -75,7 +75,7 @@ app/
   login/          Login screen
   dashboard/      Net worth overview, donut chart, account list
   update/         Guided weekly sync flow (manual + AI screenshot)
-  trends/         Net worth chart, history, forecast
+  trends/         Net worth chart, asset breakdown, per-account charts, history, forecast
   milestones/     Goal progress and projections
   admin/          Account management, credentials, cron jobs
   api/

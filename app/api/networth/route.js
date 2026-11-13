@@ -1,6 +1,8 @@
 export const dynamic = "force-dynamic";
 // GET /api/networth          → current total + per-asset breakdown
 // GET /api/networth?history  → weekly net worth history for charts
+//                               (totals, per-asset and per-account, with each
+//                               account's last known balance carried forward)
 
 import { NextResponse } from "next/server";
 import { getDb, initDb, seedIfEmpty } from "@/lib/db";
@@ -15,40 +17,7 @@ export async function GET(request) {
     const history = searchParams.has("history");
 
     if (history) {
-      // Weekly snapshots aggregated — one row per week per asset
-      // For now, return the most recent balance per account grouped by week
-      const ownerClause = owner && ["H","W","J"].includes(owner)
-        ? `AND a.owner = '${owner}'` : "";
-
-      const { rows } = await db.execute(`
-        WITH latest AS (
-          SELECT
-            s.account_id,
-            s.balance,
-            a.asset,
-            strftime('%Y-%W', s.created_at) as week,
-            ROW_NUMBER() OVER (
-              PARTITION BY s.account_id, strftime('%Y-%W', s.created_at)
-              ORDER BY s.created_at DESC
-            ) as rn
-          FROM snapshots s
-          JOIN accounts a ON a.id = s.account_id
-          WHERE a.active = 1 ${ownerClause}
-        )
-        SELECT
-          week,
-          SUM(balance)                                              as total,
-          SUM(CASE WHEN asset = 'cash'   THEN balance ELSE 0 END)  as cash,
-          SUM(CASE WHEN asset = 'shares' THEN balance ELSE 0 END)  as shares,
-          SUM(CASE WHEN asset = 'crypto' THEN balance ELSE 0 END)  as crypto,
-          SUM(CASE WHEN asset = 'super'  THEN balance ELSE 0 END)  as super
-        FROM latest
-        WHERE rn = 1
-        GROUP BY week
-        ORDER BY week ASC
-        LIMIT 52
-      `);
-      return NextResponse.json({ history: rows });
+      return NextResponse.json(await buildHistory(db, owner));
     }
 
     // Current totals — convert non-AUD accounts using today's cached FX rate
@@ -86,4 +55,100 @@ export async function GET(request) {
     console.error("GET /api/networth:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
+}
+
+// ─── History helpers ──────────────────────────────────────────────────────────
+
+const TZ = "Australia/Sydney";
+const DAY = 86400000;
+
+// "YYYY-MM-DD HH:MM:SS" (UTC, as stored by SQLite) → Sydney calendar date at UTC midnight
+function toLocalDay(createdAt) {
+  const utc = new Date(String(createdAt).replace(" ", "T") + "Z");
+  const ymd = new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" }).format(utc);
+  return new Date(ymd + "T00:00:00Z");
+}
+
+// Monday of the week containing d (weeks run Monday → Sunday)
+function weekStart(d) {
+  const dow = (d.getUTCDay() + 6) % 7; // Mon=0 … Sun=6
+  return new Date(d.getTime() - dow * DAY);
+}
+
+const isoDate = (d) => d.toISOString().slice(0, 10);
+
+// Same format as SQLite strftime('%Y-%W') so existing consumers keep working
+function weekKey(monday) {
+  const year  = monday.getUTCFullYear();
+  const yday  = Math.floor((monday - Date.UTC(year, 0, 1)) / DAY);
+  const wday  = monday.getUTCDay();
+  const wk    = Math.floor((yday + 7 - ((wday + 6) % 7)) / 7);
+  return `${year}-${String(wk).padStart(2, "0")}`;
+}
+
+async function buildHistory(db, owner) {
+  const ownerOk = owner && ["H", "W", "J"].includes(owner);
+
+  const { rows: accounts } = await db.execute({
+    sql: `SELECT id, name, institution, owner, asset, currency FROM accounts
+          WHERE active = 1${ownerOk ? " AND owner = ?" : ""} ORDER BY id`,
+    args: ownerOk ? [owner] : [],
+  });
+  if (!accounts.length) return { history: [], accounts: [] };
+
+  const ids = accounts.map(a => Number(a.id));
+  const { rows: snaps } = await db.execute({
+    sql: `SELECT account_id, balance, created_at FROM snapshots
+          WHERE account_id IN (${ids.map(() => "?").join(",")})
+          ORDER BY created_at ASC, id ASC`,
+    args: ids,
+  });
+  if (!snaps.length) return { history: [], accounts: accounts.map(shapeAccount) };
+
+  // Latest balance per account per week (snaps are ascending, so later ones overwrite)
+  const byWeek = new Map(); // weekStartISO → Map(accountId → balance)
+  for (const s of snaps) {
+    const wk = isoDate(weekStart(toLocalDay(s.created_at)));
+    if (!byWeek.has(wk)) byWeek.set(wk, new Map());
+    byWeek.get(wk).set(Number(s.account_id), Number(s.balance));
+  }
+
+  const assetOf = new Map(accounts.map(a => [Number(a.id), a.asset]));
+  const weeks   = [...byWeek.keys()].sort();
+  const first   = new Date(weeks[0] + "T00:00:00Z");
+  const last    = new Date(weeks[weeks.length - 1] + "T00:00:00Z");
+
+  // Walk every week from first to last, carrying each account's last known balance forward
+  const current = new Map();
+  const history = [];
+  for (let t = first.getTime(); t <= last.getTime(); t += 7 * DAY) {
+    const monday = new Date(t);
+    const updates = byWeek.get(isoDate(monday));
+    if (updates) for (const [id, bal] of updates) current.set(id, bal);
+
+    const row = {
+      week:     weekKey(monday),
+      week_end: isoDate(new Date(t + 6 * DAY)), // Sunday
+      total: 0, cash: 0, shares: 0, crypto: 0, super: 0,
+      synced: updates ? updates.size : 0,
+    };
+    for (const id of ids) {
+      const bal = current.get(id);
+      row[`a_${id}`] = bal ?? null;  // null until the account's first snapshot
+      if (bal == null) continue;
+      row.total += bal;
+      row[assetOf.get(id)] += bal;
+    }
+    for (const k of ["total", "cash", "shares", "crypto", "super"]) row[k] = Math.round(row[k] * 100) / 100;
+    history.push(row);
+  }
+
+  return { history, accounts: accounts.map(shapeAccount) };
+}
+
+function shapeAccount(a) {
+  return {
+    id: Number(a.id), name: a.name, institution: a.institution,
+    owner: a.owner, asset: a.asset, currency: a.currency, key: `a_${a.id}`,
+  };
 }

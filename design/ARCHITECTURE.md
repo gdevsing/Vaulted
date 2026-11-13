@@ -137,6 +137,25 @@ SAVE BALANCE → POST /api/snapshots → SQLite
 
 ---
 
+## Trends history
+
+```
+GET /api/networth?history
+  └─ All snapshots for active accounts (oldest first)
+      └─ Bucketed into Mon–Sun weeks (Sydney time), latest balance per account per week
+          └─ Walk every week first → latest, carrying each account's last balance forward
+              └─ Returns per-week totals, per-asset sums and a_<id> per account
+
+/trends
+  ├─ Net Worth  → total + 52-week forecast
+  ├─ Breakdown  → stacked cash / shares / crypto / super
+  └─ Accounts
+       ├─ Together       → one line per account, chips toggle lines on/off
+       └─ One at a time  → single account chart, balance, gain, update history
+```
+
+---
+
 ## DB restore flow
 
 ```
