@@ -14,6 +14,12 @@ Watch the deploy at: **github.com/gdevsing/Vaulted → Actions tab**
 
 > ✅ CI/CD is active. Secrets are configured. Every merge to main auto-deploys.
 
+**Limits:** the build is capped at 20 minutes (`timeout 20m`); if it fails or stalls, the
+workflow rolls back to the previous commit. The whole SSH step is capped at 30 minutes.
+
+**Run a deploy by hand (no SSH needed):** GitHub → Actions → **Deploy to VPS** → **Run workflow**.
+Use this after merging changes that don't trigger a deploy (docs or `.github/` only), or to retry.
+
 ---
 
 ## Manual Deploy (backup / if CI/CD is down)
