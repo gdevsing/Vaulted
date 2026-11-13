@@ -12,6 +12,8 @@ on:
       - ".gitignore"
       - "LICENSE"
       - "screenshots/**"
+  # Manual run from GitHub → Actions → Deploy to VPS → Run workflow
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -24,6 +26,9 @@ jobs:
           host:     ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key:      ${{ secrets.SSH_PRIVATE_KEY }}
+          # Default is 10m, which cut off a slow build mid-way and skipped the rollback.
+          # The build itself is capped at 20m below, leaving time for a rollback.
+          command_timeout: 30m
           script: |
             cd /home/ubuntu/vaulted
 
@@ -73,7 +78,8 @@ jobs:
             npm install --production || rollback
 
             echo "── Building ──"
-            npm run build || rollback
+            # Cap the build so a stalled build triggers rollback instead of a timeout kill
+            timeout 20m npm run build || rollback
 
             # ── Restart services ──────────────────────────────────────────
             echo "── Restarting services ──"
